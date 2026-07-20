@@ -123,3 +123,48 @@ export type AiRecipeDetail = {
   missing_ingredients: string[];
   cached: boolean;
 };
+
+export type SavedRecipeSource = 'ai' | 'mangae';
+
+export type SaveRecipeRequest = {
+  source: SavedRecipeSource;
+  source_id: string;
+};
+
+export type SavedRecipeListItem = {
+  id: string;
+  source: SavedRecipeSource;
+  source_id: string;
+  recipe_name: string;
+  recipe_difficulty: string | null;
+  time: string | null;
+  created_at: string;
+};
+
+export type SavedRecipeSnapshot = {
+  ingredients: RecipeIngredient[];
+  steps: Array<{ order: number; description: string }>;
+  tips: string[];
+  owned_ingredients?: string[];
+  missing_ingredients?: string[];
+  board_name?: string;
+  author_name?: string;
+  source_url?: string;
+  main_image_url?: string | null;
+};
+
+export type SavedRecipeDetail = {
+  id: string;
+  source: SavedRecipeSource;
+  source_id: string;
+  recipe_name: string;
+  recipe_difficulty: string | null;
+  time: string | null;
+  snapshot: SavedRecipeSnapshot;
+  created_at: string;
+};
+
+export type SavedRecipeStatus = {
+  saved: boolean;
+  id: string | null;
+};

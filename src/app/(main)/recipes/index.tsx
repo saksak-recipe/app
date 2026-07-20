@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -13,21 +14,35 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import { getAiRecipeRecommendations, getRecipeRecommendations } from '@/api/recipes';
+import {
+  deleteSavedRecipe,
+  getAiRecipeRecommendations,
+  getRecipeRecommendations,
+  listSavedRecipes,
+  SAVED_RECIPES_KEY,
+} from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { RecipeCard } from '@/components/RecipeCard';
+import { SavedRecipeCard } from '@/components/SavedRecipeCard';
 import { colors } from '@/theme/colors';
-import type { AiRecipeRecommendation, RecipeRecommendation } from '@/types/api';
+import type {
+  AiRecipeRecommendation,
+  RecipeRecommendation,
+  SavedRecipeListItem,
+} from '@/types/api';
 
 const RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'recommendations'] as const;
 const AI_RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'ai', 'recommendations'] as const;
 
-type RecipeSourceTab = 'mangae' | 'ai';
+type RecipeSourceTab = 'mangae' | 'ai' | 'saved';
 type RecipeListItem = RecipeRecommendation | AiRecipeRecommendation;
 
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<RecipeSourceTab>('mangae');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const mangaeQuery = useQuery({
     queryKey: RECIPE_RECOMMENDATIONS_KEY,
     queryFn: getRecipeRecommendations,
@@ -38,8 +53,35 @@ export default function RecipeRecommendationsScreen() {
     queryFn: getAiRecipeRecommendations,
     enabled: tab === 'ai',
   });
-  const activeQuery = tab === 'mangae' ? mangaeQuery : aiQuery;
-  const recipes: RecipeListItem[] = activeQuery.data?.recipes ?? [];
+  const savedQuery = useQuery({
+    queryKey: SAVED_RECIPES_KEY,
+    queryFn: listSavedRecipes,
+    enabled: tab === 'saved',
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteSavedRecipe,
+    onMutate: (id) => {
+      setDeletingId(id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SAVED_RECIPES_KEY });
+      await queryClient.invalidateQueries({ queryKey: ['recipes', 'saved', 'status'] });
+    },
+    onError: (err) => {
+      Alert.alert('삭제 실패', getErrorMessage(err));
+    },
+    onSettled: () => {
+      setDeletingId(null);
+    },
+  });
+
+  const activeQuery =
+    tab === 'mangae' ? mangaeQuery : tab === 'ai' ? aiQuery : savedQuery;
+  const recipes: RecipeListItem[] =
+    tab === 'saved' ? [] : (activeQuery.data as { recipes?: RecipeListItem[] } | undefined)?.recipes ?? [];
+  const savedRecipes: SavedRecipeListItem[] =
+    tab === 'saved' ? (savedQuery.data ?? []) : [];
 
   const renderRecipe = ({ item }: { item: RecipeListItem }) => (
     <RecipeCard
@@ -61,26 +103,48 @@ export default function RecipeRecommendationsScreen() {
     />
   );
 
+  const renderSaved = ({ item }: { item: SavedRecipeListItem }) => (
+    <SavedRecipeCard
+      recipe={item}
+      deleting={deletingId === item.id}
+      onPress={() =>
+        router.push({
+          pathname: '/(main)/recipes/detail',
+          params: { source: 'saved', saved_id: item.id },
+        })
+      }
+      onDelete={() => {
+        Alert.alert('저장 삭제', `"${item.recipe_name}"을(를) 삭제할까요?`, [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: () => deleteMutation.mutate(item.id),
+          },
+        ]);
+      }}
+    />
+  );
+
   const tabs = (
     <View style={styles.tabs}>
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{ selected: tab === 'mangae' }}
-        onPress={() => setTab('mangae')}
-        style={[styles.tab, tab === 'mangae' && styles.tabActive]}
-      >
-        <Text style={[styles.tabText, tab === 'mangae' && styles.tabTextActive]}>
-          만개의 레시피
-        </Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{ selected: tab === 'ai' }}
-        onPress={() => setTab('ai')}
-        style={[styles.tab, tab === 'ai' && styles.tabActive]}
-      >
-        <Text style={[styles.tabText, tab === 'ai' && styles.tabTextActive]}>AI 레시피</Text>
-      </Pressable>
+      {(
+        [
+          { key: 'mangae', label: '만개' },
+          { key: 'ai', label: 'AI' },
+          { key: 'saved', label: '저장' },
+        ] as const
+      ).map(({ key, label }) => (
+        <Pressable
+          key={key}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: tab === key }}
+          onPress={() => setTab(key)}
+          style={[styles.tab, tab === key && styles.tabActive]}
+        >
+          <Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text>
+        </Pressable>
+      ))}
     </View>
   );
 
@@ -97,7 +161,11 @@ export default function RecipeRecommendationsScreen() {
       ) : activeQuery.isError ? (
         <View style={styles.center}>
           <Text style={styles.errorTitle}>
-            {tab === 'ai' ? 'AI 레시피를 불러오지 못했어요' : '레시피를 불러오지 못했어요'}
+            {tab === 'ai'
+              ? 'AI 레시피를 불러오지 못했어요'
+              : tab === 'saved'
+                ? '저장한 레시피를 불러오지 못했어요'
+                : '레시피를 불러오지 못했어요'}
           </Text>
           <Text style={styles.errorDesc}>{getErrorMessage(activeQuery.error)}</Text>
           <Button
@@ -106,6 +174,29 @@ export default function RecipeRecommendationsScreen() {
             onPress={() => void activeQuery.refetch()}
           />
         </View>
+      ) : tab === 'saved' ? (
+        <FlatList
+          contentContainerStyle={styles.list}
+          data={savedRecipes}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>저장한 레시피가 없어요</Text>
+              <Text style={styles.emptyDescription}>
+                추천 레시피 상세에서 저장하면 여기에서 다시 볼 수 있어요.
+              </Text>
+            </View>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={savedQuery.isRefetching}
+              onRefresh={() => void savedQuery.refetch()}
+              tintColor={colors.primary}
+            />
+          }
+          renderItem={renderSaved}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
       ) : (
         <FlatList
           contentContainerStyle={styles.list}
