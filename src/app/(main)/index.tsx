@@ -158,6 +158,12 @@ export default function FridgeScreen() {
       )}
 
       <View style={styles.actions}>
+        <Button
+          title="레시피 추천"
+          variant="secondary"
+          onPress={() => router.push('/(main)/recipes')}
+          style={styles.full}
+        />
         {items.length > 0 ? (
           <Button
             title="전체 비우기"
@@ -259,10 +265,14 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  full: {
+    width: '100%',
   },
   half: {
     flex: 1,
