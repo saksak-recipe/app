@@ -38,3 +38,42 @@ export type ApiErrorBody = {
   code: string;
   detail: string | Array<{ msg?: string; loc?: unknown[] }>;
 };
+
+export type RecipeRecommendation = {
+  recipe_name: string;
+  parsed_ingredients: string;
+  board_name: string;
+  author_name: string;
+  recipe_difficulty: string;
+  time: string;
+  score: number;
+};
+
+export type RecipeRecommendationResponse = {
+  ingredients_used: string[];
+  recipes: RecipeRecommendation[];
+};
+
+export type RecipeIngredient = {
+  name: string;
+  amount: string;
+};
+
+export type RecipeStep = {
+  order: number;
+  description: string;
+  tip: string | null;
+  image_url: string | null;
+};
+
+export type RecipeDetail = {
+  board_name: string;
+  author_name: string;
+  recipe_name: string;
+  source_url: string;
+  main_image_url: string | null;
+  ingredients: RecipeIngredient[];
+  steps: RecipeStep[];
+  tips: string[];
+  cached: boolean;
+};
