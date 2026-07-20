@@ -18,6 +18,10 @@ import { login, loginWithKakao } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import {
+  getKakaoUnavailableMessage,
+  isKakaoNativeAvailable,
+} from '@/lib/kakao';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
@@ -35,6 +39,21 @@ function isKakaoCancelError(error: unknown): boolean {
     message.includes('cancelled') ||
     message.includes('canceled') ||
     message.includes('user cancelled')
+  );
+}
+
+function isKakaoNativeMissingError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const message =
+    'message' in error && typeof error.message === 'string'
+      ? error.message.toLowerCase()
+      : '';
+  return (
+    message.includes("cannot read property 'login' of null") ||
+    message.includes("cannot read properties of null (reading 'login')") ||
+    message.includes('rnkakaologins')
   );
 }
 
@@ -59,6 +78,9 @@ export default function LoginScreen() {
 
   const kakaoMutation = useMutation({
     mutationFn: async () => {
+      if (!isKakaoNativeAvailable()) {
+        throw new Error(getKakaoUnavailableMessage());
+      }
       const token = await loginWithKakaoSdk();
       return loginWithKakao(token.accessToken);
     },
@@ -75,6 +97,10 @@ export default function LoginScreen() {
     },
     onError: (err) => {
       if (isKakaoCancelError(err)) {
+        return;
+      }
+      if (isKakaoNativeMissingError(err)) {
+        setError(getKakaoUnavailableMessage());
         return;
       }
       setError(getErrorMessage(err, '카카오 로그인에 실패했습니다.'));
