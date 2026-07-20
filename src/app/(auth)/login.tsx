@@ -30,7 +30,7 @@ export default function LoginScreen() {
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: async (data) => {
-      await setSession(data.access_token, data.info);
+      await setSession(data.access_token, data.refresh_token, data.info);
       router.replace('/(main)');
     },
     onError: (err) => {

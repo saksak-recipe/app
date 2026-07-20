@@ -7,6 +7,7 @@ export type UserInfo = {
 export type AuthResponse = {
   info: UserInfo;
   access_token: string;
+  refresh_token: string;
 };
 
 export type SignUpRequest = {

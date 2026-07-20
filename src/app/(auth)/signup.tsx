@@ -36,7 +36,7 @@ export default function SignupScreen() {
         setError('가입은 완료됐지만 토큰이 없습니다. 다시 로그인해주세요.');
         return;
       }
-      await setSession(data.access_token, data.info);
+      await setSession(data.access_token, data.refresh_token, data.info);
       router.replace('/(main)');
     },
     onError: (err) => {
