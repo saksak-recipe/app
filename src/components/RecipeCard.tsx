@@ -10,6 +10,10 @@ type RecipeCardProps = {
   onPress: () => void;
 };
 
+function formatIngredients(items: string[]): string {
+  return items.length > 0 ? items.join(', ') : '없음';
+}
+
 export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
   return (
     <Pressable
@@ -26,8 +30,11 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
           <Text style={styles.difficultyText}>{recipe.recipe_difficulty}</Text>
         </View>
       </View>
-      <Text numberOfLines={1} style={styles.ingredients}>
-        {recipe.parsed_ingredients}
+      <Text numberOfLines={2} style={styles.owned}>
+        있어요 · {formatIngredients(recipe.owned_ingredients)}
+      </Text>
+      <Text numberOfLines={2} style={styles.missing}>
+        필요해요 · {formatIngredients(recipe.missing_ingredients)}
       </Text>
       <View style={styles.timeRow}>
         <Ionicons color={colors.primary} name="time-outline" size={16} />
@@ -42,7 +49,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 24,
     padding: 18,
-    gap: 10,
+    gap: 8,
     ...clayShadow,
   },
   titleRow: {
@@ -67,14 +74,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.accent,
   },
-  ingredients: {
-    fontSize: 14,
+  owned: {
+    fontSize: 13,
+    color: colors.primaryDark,
+    fontWeight: '600',
+  },
+  missing: {
+    fontSize: 13,
     color: colors.textMuted,
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    marginTop: 2,
   },
   time: {
     fontSize: 13,

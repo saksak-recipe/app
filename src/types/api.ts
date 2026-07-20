@@ -42,7 +42,8 @@ export type ApiErrorBody = {
 
 export type RecipeRecommendation = {
   recipe_name: string;
-  parsed_ingredients: string;
+  owned_ingredients: string[];
+  missing_ingredients: string[];
   board_name: string;
   author_name: string;
   recipe_difficulty: string;
