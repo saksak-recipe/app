@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { logout as logoutApi } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import {
   deleteAllIngredients,
@@ -69,7 +70,18 @@ export default function FridgeScreen() {
         text: '로그아웃',
         style: 'destructive',
         onPress: () => {
-          void clearSession().then(() => router.replace('/(auth)/login'));
+          void (async () => {
+            const refresh = useAuthStore.getState().refreshToken;
+            try {
+              if (refresh) {
+                await logoutApi(refresh);
+              }
+            } catch {
+              // 서버 실패해도 로컬 세션은 지운다
+            }
+            await clearSession();
+            router.replace('/(auth)/login');
+          })();
         },
       },
     ]);
