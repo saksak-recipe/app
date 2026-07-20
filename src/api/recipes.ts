@@ -28,7 +28,7 @@ export async function getRecipeDetail(
   return data;
 }
 
-const AI_REQUEST_TIMEOUT_MS = 20_000;
+const AI_REQUEST_TIMEOUT_MS = 35_000;
 
 export const SAVED_RECIPES_KEY = ['recipes', 'saved'] as const;
 
