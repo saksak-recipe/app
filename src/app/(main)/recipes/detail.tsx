@@ -57,10 +57,14 @@ export default function RecipeDetailScreen() {
   }
 
   if (detailQuery.isError) {
+    const is404 =
+      isAxiosError(detailQuery.error) &&
+      detailQuery.error.response?.status === 404;
+
     return (
       <DetailError
         message={detailErrorMessage(detailQuery.error)}
-        onRetry={() => void detailQuery.refetch()}
+        onRetry={is404 ? undefined : () => void detailQuery.refetch()}
       />
     );
   }
