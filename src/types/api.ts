@@ -10,6 +10,23 @@ export type AuthResponse = {
   refresh_token: string;
 };
 
+export type KakaoAuthResponse = AuthResponse & {
+  status: 'authenticated';
+};
+
+export type KakaoNeedsProfileResponse = {
+  status: 'needs_profile';
+  signup_token: string;
+};
+
+export type KakaoLoginResponse = KakaoAuthResponse | KakaoNeedsProfileResponse;
+
+export type KakaoCompleteRequest = {
+  signup_token: string;
+  nickname: string;
+  email: string;
+};
+
 export type SignUpRequest = {
   email: string;
   password: string;

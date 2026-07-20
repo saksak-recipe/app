@@ -2,22 +2,41 @@ import { useMutation } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { login as loginWithKakaoSdk } from '@react-native-seoul/kakao-login';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { login } from '@/api/auth';
+import { login, loginWithKakao } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
+
+function isKakaoCancelError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const message =
+    'message' in error && typeof error.message === 'string'
+      ? error.message.toLowerCase()
+      : '';
+  return (
+    message.includes('cancel') ||
+    message.includes('cancelled') ||
+    message.includes('canceled') ||
+    message.includes('user cancelled')
+  );
+}
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -38,7 +57,32 @@ export default function LoginScreen() {
     },
   });
 
+  const kakaoMutation = useMutation({
+    mutationFn: async () => {
+      const token = await loginWithKakaoSdk();
+      return loginWithKakao(token.accessToken);
+    },
+    onSuccess: async (data) => {
+      if (data.status === 'needs_profile') {
+        router.push({
+          pathname: '/(auth)/kakao-profile',
+          params: { signup_token: data.signup_token },
+        });
+        return;
+      }
+      await setSession(data.access_token, data.refresh_token, data.info);
+      router.replace('/(main)');
+    },
+    onError: (err) => {
+      if (isKakaoCancelError(err)) {
+        return;
+      }
+      setError(getErrorMessage(err, '카카오 로그인에 실패했습니다.'));
+    },
+  });
+
   const canSubmit = email.trim().length > 0 && password.length >= 8;
+  const isBusy = mutation.isPending || kakaoMutation.isPending;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -81,13 +125,39 @@ export default function LoginScreen() {
 
             <Button
               loading={mutation.isPending}
-              disabled={!canSubmit}
+              disabled={!canSubmit || isBusy}
               onPress={() => {
                 setError(null);
                 mutation.mutate({ email: email.trim(), password });
               }}
               title="로그인"
             />
+
+            <View style={styles.dividerRow}>
+              <View style={styles.divider} />
+              <Text style={styles.dividerText}>또는</Text>
+              <View style={styles.divider} />
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={isBusy}
+              onPress={() => {
+                setError(null);
+                kakaoMutation.mutate();
+              }}
+              style={({ pressed }) => [
+                styles.kakaoButton,
+                pressed && !isBusy && styles.kakaoPressed,
+                isBusy && styles.kakaoDisabled,
+              ]}
+            >
+              {kakaoMutation.isPending ? (
+                <ActivityIndicator color="#191919" />
+              ) : (
+                <Text style={styles.kakaoLabel}>카카오로 시작하기</Text>
+              )}
+            </Pressable>
           </View>
 
           <View style={styles.footer}>
@@ -162,6 +232,41 @@ const styles = StyleSheet.create({
   error: {
     color: colors.danger,
     fontSize: 14,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 2,
+  },
+  divider: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textMuted,
+    fontSize: 13,
+  },
+  kakaoButton: {
+    minHeight: 54,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE500',
+    paddingHorizontal: 18,
+  },
+  kakaoPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.98 }],
+  },
+  kakaoDisabled: {
+    opacity: 0.5,
+  },
+  kakaoLabel: {
+    color: '#191919',
+    fontSize: 16,
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',

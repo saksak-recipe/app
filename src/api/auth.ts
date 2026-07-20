@@ -1,5 +1,12 @@
 import { apiClient } from '@/api/client';
-import type { AuthResponse, LogInRequest, SignUpRequest } from '@/types/api';
+import type {
+  AuthResponse,
+  KakaoCompleteRequest,
+  KakaoAuthResponse,
+  KakaoLoginResponse,
+  LogInRequest,
+  SignUpRequest,
+} from '@/types/api';
 
 export async function login(payload: LogInRequest): Promise<AuthResponse> {
   const { data } = await apiClient.post<AuthResponse>('/auth/login', payload);
@@ -8,6 +15,25 @@ export async function login(payload: LogInRequest): Promise<AuthResponse> {
 
 export async function signup(payload: SignUpRequest): Promise<AuthResponse> {
   const { data } = await apiClient.post<AuthResponse>('/users/signup', payload);
+  return data;
+}
+
+export async function loginWithKakao(
+  accessToken: string,
+): Promise<KakaoLoginResponse> {
+  const { data } = await apiClient.post<KakaoLoginResponse>('/auth/kakao', {
+    access_token: accessToken,
+  });
+  return data;
+}
+
+export async function completeKakaoSignup(
+  payload: KakaoCompleteRequest,
+): Promise<KakaoAuthResponse> {
+  const { data } = await apiClient.post<KakaoAuthResponse>(
+    '/auth/kakao/complete',
+    payload,
+  );
   return data;
 }
 
