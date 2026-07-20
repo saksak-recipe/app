@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
@@ -82,6 +90,9 @@ export default function RecipeRecommendationsScreen() {
       {activeQuery.isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
+          {tab === 'ai' ? (
+            <Text style={styles.loadingHint}>냉장고 재료로 레시피를 고르는 중…</Text>
+          ) : null}
         </View>
       ) : activeQuery.isError ? (
         <View style={styles.center}>
@@ -113,6 +124,13 @@ export default function RecipeRecommendationsScreen() {
                 식재료를 추가하면 맞춤 레시피를 추천해 드릴게요.
               </Text>
             </View>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={activeQuery.isRefetching}
+              onRefresh={() => void activeQuery.refetch()}
+              tintColor={colors.primary}
+            />
           }
           renderItem={renderRecipe}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -166,6 +184,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
     gap: 12,
+  },
+  loadingHint: {
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
   },
   errorTitle: {
     fontSize: 17,

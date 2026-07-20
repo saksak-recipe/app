@@ -23,9 +23,12 @@ export async function getRecipeDetail(
   return data;
 }
 
+const AI_REQUEST_TIMEOUT_MS = 20_000;
+
 export async function getAiRecipeRecommendations(): Promise<AiRecipeRecommendationResponse> {
   const { data } = await apiClient.get<AiRecipeRecommendationResponse>(
     '/recipes/ai/recommendations',
+    { timeout: AI_REQUEST_TIMEOUT_MS },
   );
   return data;
 }
@@ -33,6 +36,7 @@ export async function getAiRecipeRecommendations(): Promise<AiRecipeRecommendati
 export async function getAiRecipeDetail(recipeId: string): Promise<AiRecipeDetail> {
   const { data } = await apiClient.get<AiRecipeDetail>('/recipes/ai/detail', {
     params: { recipe_id: recipeId },
+    timeout: AI_REQUEST_TIMEOUT_MS,
   });
   return data;
 }
