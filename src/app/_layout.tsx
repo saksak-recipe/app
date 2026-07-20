@@ -4,7 +4,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { setUnauthorizedHandler } from '@/api/client';
+import {
+  setTokensRefreshedHandler,
+  setUnauthorizedHandler,
+} from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 
@@ -16,6 +19,10 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+setTokensRefreshedHandler((access, refresh, user) =>
+  useAuthStore.getState().setSession(access, refresh, user),
+);
 
 function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();

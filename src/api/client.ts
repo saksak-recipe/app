@@ -1,6 +1,7 @@
 import axios, { AxiosError, isAxiosError } from 'axios';
 
-import type { ApiErrorBody } from '@/types/api';
+import { refreshTokens } from '@/api/auth';
+import type { ApiErrorBody, UserInfo } from '@/types/api';
 
 const baseURL = `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/v1`;
 
@@ -14,6 +15,10 @@ export const apiClient = axios.create({
 
 let authToken: string | null = null;
 let onUnauthorized: (() => void) | null = null;
+let onTokensRefreshed:
+  | ((access: string, refresh: string, user: UserInfo) => Promise<void>)
+  | null = null;
+let refreshPromise: Promise<string | null> | null = null;
 
 export function setAuthToken(token: string | null): void {
   authToken = token;
@@ -21,6 +26,48 @@ export function setAuthToken(token: string | null): void {
 
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler;
+}
+
+export function setTokensRefreshedHandler(
+  handler: typeof onTokensRefreshed,
+): void {
+  onTokensRefreshed = handler;
+}
+
+function isAuthUrl(url?: string): boolean {
+  if (!url) {
+    return false;
+  }
+
+  return (
+    url.includes('/auth/login') ||
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/logout') ||
+    url.includes('/users/signup')
+  );
+}
+
+async function rotateAccessToken(): Promise<string | null> {
+  const { useAuthStore } = await import('@/stores/authStore');
+  const refreshToken = useAuthStore.getState().refreshToken;
+
+  if (!refreshToken) {
+    return null;
+  }
+
+  const data = await refreshTokens(refreshToken);
+
+  if (onTokensRefreshed) {
+    await onTokensRefreshed(
+      data.access_token,
+      data.refresh_token,
+      data.info,
+    );
+  } else {
+    setAuthToken(data.access_token);
+  }
+
+  return data.access_token;
 }
 
 apiClient.interceptors.request.use((config) => {
@@ -32,15 +79,49 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiErrorBody>) => {
+  async (error: AxiosError<ApiErrorBody>) => {
     const status = error.response?.status;
     const code = error.response?.data?.code;
+    const original = error.config as
+      | (NonNullable<typeof error.config> & { _retry?: boolean })
+      | undefined;
 
     if (
       status === 401 &&
-      (code === 'TOKEN_EXPIRED' ||
-        code === 'INVALID_TOKEN' ||
-        code === 'UNAUTHORIZED')
+      code === 'TOKEN_EXPIRED' &&
+      original &&
+      !isAuthUrl(original.url) &&
+      !original._retry
+    ) {
+      original._retry = true;
+
+      try {
+        if (!refreshPromise) {
+          refreshPromise = rotateAccessToken().finally(() => {
+            refreshPromise = null;
+          });
+        }
+
+        const newToken = await refreshPromise;
+
+        if (!newToken) {
+          onUnauthorized?.();
+          return Promise.reject(error);
+        }
+
+        original.headers = original.headers ?? {};
+        original.headers.Authorization = `Bearer ${newToken}`;
+
+        return apiClient.request(original);
+      } catch {
+        onUnauthorized?.();
+        return Promise.reject(error);
+      }
+    }
+
+    if (
+      status === 401 &&
+      (code === 'INVALID_TOKEN' || code === 'UNAUTHORIZED')
     ) {
       onUnauthorized?.();
     }
