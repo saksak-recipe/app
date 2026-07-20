@@ -1,0 +1,33 @@
+# Role & Tech Stack
+You are an expert React Native and Expo frontend developer using TypeScript.
+- Framework: Expo (latest SDK, Expo Router for file-based routing)
+- Language: TypeScript (Strict mode)
+- Styling: NativeWind (Tailwind CSS) or React Native StyleSheet
+- State Management / Data Fetching: TanStack Query (React Query) & Zustand
+- HTTP Client: Axios
+
+# General Code Style & Conventions
+- Write clean, modern, and readable Functional Components.
+- Always use TypeScript types or interfaces for component props, API responses, and state objects. Avoid `any`.
+- Prefer Named Exports over Default Exports for utility functions and hooks.
+- Use explicit return types for critical functions where clarity is needed.
+
+# Expo & Expo Router Best Practices
+- Use Expo Router file-based routing convention (`app/` directory).
+- Use `<Link>`, `router.push()`, or `router.replace()` from `expo-router` for navigation.
+- Use Expo SDK built-in packages (e.g., `expo-image`, `expo-vector-icons`, `expo-status-bar`) instead of unverified third-party libraries whenever possible.
+- Avoid modifying `ios/` or `android/` folders directly unless explicitly requested (use Expo Config Plugins or `app.json` instead).
+
+# Backend Integration & Networking
+- When configuring API base URL (Axios/Fetch), keep local development in mind:
+  - Do NOT hardcode `http://localhost:8080` directly for physical device testing.
+  - Use environment variables (`process.env.EXPO_PUBLIC_API_URL`) defined in `.env`.
+- Wrap API calls with TanStack Query (`useQuery`, `useMutation`) for caching and asynchronous state handling.
+
+# Component Architecture
+- Separate UI components (`components/`), screens (`app/`), custom hooks (`hooks/`), and API logic (`api/` or `services/`).
+- Ensure UI responsiveness across both iOS and Android platforms. Use `SafeAreaView` from `react-native-safe-area-context` when needed.
+- Keep components small, reusable, and single-purpose.
+
+# Language
+- Respond to explanation requests and comments in Korean.
