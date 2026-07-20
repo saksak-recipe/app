@@ -1,83 +1,123 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import { getRecipeRecommendations } from '@/api/recipes';
+import { getAiRecipeRecommendations, getRecipeRecommendations } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { RecipeCard } from '@/components/RecipeCard';
 import { colors } from '@/theme/colors';
-import type { RecipeRecommendation } from '@/types/api';
+import type { AiRecipeRecommendation, RecipeRecommendation } from '@/types/api';
 
 const RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'recommendations'] as const;
+const AI_RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'ai', 'recommendations'] as const;
+
+type RecipeSourceTab = 'mangae' | 'ai';
+type RecipeListItem = RecipeRecommendation | AiRecipeRecommendation;
 
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
-  const recipesQuery = useQuery({
+  const [tab, setTab] = useState<RecipeSourceTab>('mangae');
+  const mangaeQuery = useQuery({
     queryKey: RECIPE_RECOMMENDATIONS_KEY,
     queryFn: getRecipeRecommendations,
+    enabled: tab === 'mangae',
   });
-  const recipes = recipesQuery.data?.recipes ?? [];
+  const aiQuery = useQuery({
+    queryKey: AI_RECIPE_RECOMMENDATIONS_KEY,
+    queryFn: getAiRecipeRecommendations,
+    enabled: tab === 'ai',
+  });
+  const activeQuery = tab === 'mangae' ? mangaeQuery : aiQuery;
+  const recipes: RecipeListItem[] = activeQuery.data?.recipes ?? [];
 
-  const renderRecipe = ({ item }: { item: RecipeRecommendation }) => (
+  const renderRecipe = ({ item }: { item: RecipeListItem }) => (
     <RecipeCard
       recipe={item}
       onPress={() =>
-        router.push({
-          pathname: '/(main)/recipes/detail',
-          params: {
-            board_name: item.board_name,
-            author_name: item.author_name,
-          },
-        })
+        'recipe_id' in item
+          ? router.push({
+              pathname: '/(main)/recipes/detail',
+              params: { source: 'ai', recipe_id: item.recipe_id },
+            })
+          : router.push({
+              pathname: '/(main)/recipes/detail',
+              params: {
+                board_name: item.board_name,
+                author_name: item.author_name,
+              },
+            })
       }
     />
   );
 
-  if (recipesQuery.isLoading) {
-    return (
-      <SafeAreaView edges={['bottom']} style={styles.safe}>
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (recipesQuery.isError) {
-    return (
-      <SafeAreaView edges={['bottom']} style={styles.safe}>
-        <View style={styles.center}>
-          <Text style={styles.errorTitle}>레시피를 불러오지 못했어요</Text>
-          <Text style={styles.errorDesc}>{getErrorMessage(recipesQuery.error)}</Text>
-          <Button
-            title="다시 시도"
-            variant="secondary"
-            onPress={() => void recipesQuery.refetch()}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const tabs = (
+    <View style={styles.tabs}>
+      <Pressable
+        accessibilityRole="tab"
+        accessibilityState={{ selected: tab === 'mangae' }}
+        onPress={() => setTab('mangae')}
+        style={[styles.tab, tab === 'mangae' && styles.tabActive]}
+      >
+        <Text style={[styles.tabText, tab === 'mangae' && styles.tabTextActive]}>
+          만개의 레시피
+        </Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="tab"
+        accessibilityState={{ selected: tab === 'ai' }}
+        onPress={() => setTab('ai')}
+        style={[styles.tab, tab === 'ai' && styles.tabActive]}
+      >
+        <Text style={[styles.tabText, tab === 'ai' && styles.tabTextActive]}>AI 레시피</Text>
+      </Pressable>
+    </View>
+  );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
-      <FlatList
-        contentContainerStyle={styles.list}
-        data={recipes}
-        keyExtractor={(item) => `${item.board_name}-${item.author_name}`}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>추천할 레시피가 없어요</Text>
-            <Text style={styles.emptyDescription}>
-              식재료를 추가하면 맞춤 레시피를 추천해 드릴게요.
-            </Text>
-          </View>
-        }
-        renderItem={renderRecipe}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {tabs}
+      {activeQuery.isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      ) : activeQuery.isError ? (
+        <View style={styles.center}>
+          <Text style={styles.errorTitle}>
+            {tab === 'ai' ? 'AI 레시피를 불러오지 못했어요' : '레시피를 불러오지 못했어요'}
+          </Text>
+          <Text style={styles.errorDesc}>{getErrorMessage(activeQuery.error)}</Text>
+          <Button
+            title="다시 시도"
+            variant="secondary"
+            onPress={() => void activeQuery.refetch()}
+          />
+        </View>
+      ) : (
+        <FlatList
+          contentContainerStyle={styles.list}
+          data={recipes}
+          keyExtractor={(item) =>
+            'recipe_id' in item
+              ? item.recipe_id
+              : `${item.board_name}-${item.author_name}`
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>
+                {tab === 'ai' ? '추천할 AI 레시피가 없어요' : '추천할 레시피가 없어요'}
+              </Text>
+              <Text style={styles.emptyDescription}>
+                식재료를 추가하면 맞춤 레시피를 추천해 드릴게요.
+              </Text>
+            </View>
+          }
+          renderItem={renderRecipe}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -86,6 +126,32 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  tabs: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginTop: 16,
+    padding: 4,
+    borderRadius: 16,
+    backgroundColor: colors.primarySoft,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingVertical: 10,
+  },
+  tabActive: {
+    backgroundColor: colors.surface,
+  },
+  tabText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  tabTextActive: {
+    color: colors.primaryDark,
+    fontWeight: '800',
   },
   list: {
     padding: 20,

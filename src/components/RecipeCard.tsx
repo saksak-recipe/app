@@ -3,10 +3,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
-import type { RecipeRecommendation } from '@/types/api';
+
+type RecipeCardRecipe = {
+  recipe_name: string;
+  owned_ingredients: string[];
+  missing_ingredients: string[];
+  recipe_difficulty: string;
+  time: string;
+};
 
 type RecipeCardProps = {
-  recipe: RecipeRecommendation;
+  recipe: RecipeCardRecipe;
   onPress: () => void;
 };
 
