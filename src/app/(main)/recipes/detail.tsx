@@ -78,14 +78,16 @@ export default function RecipeDetailScreen() {
     <SafeAreaView edges={['bottom']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
         {recipe.main_image_url ? (
-          <Image
-            accessibilityLabel={`${recipe.recipe_name} 대표 이미지`}
-            cachePolicy="memory-disk"
-            contentFit="cover"
-            source={recipe.main_image_url}
-            style={styles.mainImage}
-            transition={200}
-          />
+          <View style={styles.mainImageWrap}>
+            <Image
+              accessibilityLabel={`${recipe.recipe_name} 대표 이미지`}
+              cachePolicy="memory-disk"
+              contentFit="cover"
+              source={recipe.main_image_url}
+              style={styles.mainImage}
+              transition={200}
+            />
+          </View>
         ) : null}
 
         <View style={styles.titleSection}>
@@ -206,12 +208,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 16,
   },
+  mainImageWrap: {
+    borderRadius: 24,
+    ...clayShadow,
+  },
   mainImage: {
     width: '100%',
     height: 240,
     borderRadius: 24,
     backgroundColor: colors.primarySoft,
-    ...clayShadow,
   },
   titleSection: {
     gap: 6,
