@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getRecipeDetail } from '@/api/recipes';
+import { getAiRecipeDetail, getRecipeDetail } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { colors } from '@/theme/colors';
 import { clayShadow, clayShadowSoft } from '@/theme/shadows';
@@ -29,20 +29,35 @@ function detailErrorMessage(error: unknown): string {
 }
 
 export default function RecipeDetailScreen() {
-  const { author_name: authorNameParam, board_name: boardNameParam } =
-    useLocalSearchParams<{
-      board_name?: string | string[];
-      author_name?: string | string[];
-    }>();
+  const {
+    author_name: authorNameParam,
+    board_name: boardNameParam,
+    recipe_id: recipeIdParam,
+    source: sourceParam,
+  } = useLocalSearchParams<{
+    board_name?: string | string[];
+    author_name?: string | string[];
+    recipe_id?: string | string[];
+    source?: string | string[];
+  }>();
   const boardName = getFirstParam(boardNameParam);
   const authorName = getFirstParam(authorNameParam);
-  const detailQuery = useQuery({
+  const source = getFirstParam(sourceParam) ?? 'mangae';
+  const recipeId = getFirstParam(recipeIdParam);
+  const isAi = source === 'ai';
+  const mangaeQuery = useQuery({
     queryKey: ['recipes', 'detail', boardName, authorName],
     queryFn: () => getRecipeDetail(boardName!, authorName!),
-    enabled: Boolean(boardName && authorName),
+    enabled: !isAi && Boolean(boardName && authorName),
   });
+  const aiQuery = useQuery({
+    queryKey: ['recipes', 'ai', 'detail', recipeId],
+    queryFn: () => getAiRecipeDetail(recipeId!),
+    enabled: isAi && Boolean(recipeId),
+  });
+  const detailQuery = isAi ? aiQuery : mangaeQuery;
 
-  if (!boardName || !authorName) {
+  if ((isAi && !recipeId) || (!isAi && (!boardName || !authorName))) {
     return <DetailError message="해당 레시피를 찾지 못했어요" />;
   }
 
@@ -77,7 +92,7 @@ export default function RecipeDetailScreen() {
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        {recipe.main_image_url ? (
+        {'main_image_url' in recipe && recipe.main_image_url ? (
           <View style={styles.mainImageWrap}>
             <Image
               accessibilityLabel={`${recipe.recipe_name} 대표 이미지`}
@@ -92,7 +107,9 @@ export default function RecipeDetailScreen() {
 
         <View style={styles.titleSection}>
           <Text style={styles.recipeName}>{recipe.recipe_name}</Text>
-          <Text style={styles.authorName}>{recipe.author_name}</Text>
+          {'author_name' in recipe ? (
+            <Text style={styles.authorName}>{recipe.author_name}</Text>
+          ) : null}
         </View>
 
         <Section title="재료">
