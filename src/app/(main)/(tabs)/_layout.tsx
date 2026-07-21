@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
+import { NotificationBell } from '@/components/NotificationBell';
 import { colors } from '@/theme/colors';
 
 export default function TabsLayout() {
@@ -21,6 +22,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        headerRight: () => <NotificationBell />,
       }}
     >
       <Tabs.Screen
