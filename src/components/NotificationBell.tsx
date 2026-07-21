@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getUnreadCount } from '@/api/notifications';
@@ -23,7 +23,7 @@ export function NotificationBell() {
       accessibilityRole="button"
       accessibilityLabel="알림"
       hitSlop={8}
-      onPress={() => router.push('/(main)/notifications')}
+      onPress={() => router.push('/(main)/notifications' as Href)}
       style={styles.wrap}
     >
       <Ionicons name="notifications-outline" size={24} color={colors.primaryDark} />

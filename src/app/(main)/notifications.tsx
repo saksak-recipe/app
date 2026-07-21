@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -74,7 +74,7 @@ export default function NotificationsScreen() {
         await markNotificationRead(item.id);
         await invalidateNotificationQueries(queryClient);
       }
-      router.replace('/(main)/(tabs)');
+      router.replace('/(main)/(tabs)' as Href);
     } catch (err) {
       Alert.alert('오류', getErrorMessage(err));
     }
