@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/Button';
 import { RecipeCard } from '@/components/RecipeCard';
 import { SavedRecipeCard } from '@/components/SavedRecipeCard';
+import { ScopeToggle } from '@/components/ScopeToggle';
+import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
 import type {
   AiRecipeRecommendation,
@@ -40,17 +42,20 @@ type RecipeListItem = RecipeRecommendation | AiRecipeRecommendation;
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const scope = useScopeStore((state) => state.scope);
+  const hasGroup = useScopeStore((state) => state.hasGroup);
+  const setScope = useScopeStore((state) => state.setScope);
   const [tab, setTab] = useState<RecipeSourceTab>('mangae');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const mangaeQuery = useQuery({
-    queryKey: RECIPE_RECOMMENDATIONS_KEY,
-    queryFn: getRecipeRecommendations,
+    queryKey: [...RECIPE_RECOMMENDATIONS_KEY, scope],
+    queryFn: () => getRecipeRecommendations(scope),
     enabled: tab === 'mangae',
   });
   const aiQuery = useQuery({
-    queryKey: AI_RECIPE_RECOMMENDATIONS_KEY,
-    queryFn: getAiRecipeRecommendations,
+    queryKey: [...AI_RECIPE_RECOMMENDATIONS_KEY, scope],
+    queryFn: () => getAiRecipeRecommendations(scope),
     enabled: tab === 'ai',
   });
   const savedQuery = useQuery({
@@ -90,7 +95,7 @@ export default function RecipeRecommendationsScreen() {
         'recipe_id' in item
           ? router.push({
               pathname: '/(main)/recipes/detail',
-              params: { source: 'ai', recipe_id: item.recipe_id },
+              params: { source: 'ai', recipe_id: item.recipe_id, scope },
             })
           : router.push({
               pathname: '/(main)/recipes/detail',
@@ -150,6 +155,11 @@ export default function RecipeRecommendationsScreen() {
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
+      {hasGroup && tab !== 'saved' ? (
+        <View style={styles.scopeWrap}>
+          <ScopeToggle scope={scope} onChange={setScope} />
+        </View>
+      ) : null}
       {tabs}
       {activeQuery.isLoading ? (
         <View style={styles.center}>
@@ -235,6 +245,10 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  scopeWrap: {
+    marginHorizontal: 20,
+    marginTop: 12,
   },
   tabs: {
     flexDirection: 'row',

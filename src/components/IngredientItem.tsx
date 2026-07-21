@@ -1,29 +1,70 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { Ingredient } from '@/types/api';
+import type { Ingredient, IngredientStatus } from '@/types/api';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
 
 type IngredientItemProps = {
   item: Ingredient;
   onDelete: (id: number) => void;
+  onEdit?: (item: Ingredient) => void;
   deleting?: boolean;
 };
 
-function formatDate(value: string): string {
+const STATUS_LABEL: Record<IngredientStatus, string> = {
+  expired: '유통기한 지남',
+  soon: '곧 만료',
+  ok: '양호',
+  unknown: '미설정',
+};
+
+const STATUS_COLOR: Record<IngredientStatus, string> = {
+  expired: colors.danger,
+  soon: colors.accent,
+  ok: colors.primary,
+  unknown: colors.textMuted,
+};
+
+const STATUS_BG: Record<IngredientStatus, string> = {
+  expired: colors.dangerSoft,
+  soon: colors.accentSoft,
+  ok: colors.primarySoft,
+  unknown: colors.border,
+};
+
+function formatDate(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
   return value.slice(0, 10);
 }
 
-export function IngredientItem({ item, onDelete, deleting }: IngredientItemProps) {
+export function IngredientItem({ item, onDelete, onEdit, deleting }: IngredientItemProps) {
+  const purchaseDate = formatDate(item.purchase_date);
+  const expirationDate = formatDate(item.expiration_date);
+
   return (
-    <View style={styles.row}>
+    <Pressable
+      disabled={!onEdit}
+      onPress={() => onEdit?.(item)}
+      style={({ pressed }) => [styles.row, onEdit && pressed && styles.pressed]}
+    >
       <View style={styles.iconWrap}>
         <Ionicons name="leaf" size={20} color={colors.primary} />
       </View>
       <View style={styles.content}>
         <Text style={styles.name}>{item.ingredient_name}</Text>
-        <Text style={styles.meta}>구매일 {formatDate(item.purchase_date)}</Text>
+        <Text style={styles.meta}>
+          {purchaseDate ? `구매일 ${purchaseDate}` : null}
+          {purchaseDate && expirationDate ? ' · ' : null}
+          {expirationDate ? `유통기한 ${expirationDate}` : null}
+        </Text>
+        <View style={[styles.statusPill, { backgroundColor: STATUS_BG[item.status] }]}>
+          <Text style={[styles.statusText, { color: STATUS_COLOR[item.status] }]}>
+            {STATUS_LABEL[item.status]}
+          </Text>
+        </View>
       </View>
       <Pressable
         accessibilityLabel={`${item.ingredient_name} 삭제`}
@@ -34,7 +75,7 @@ export function IngredientItem({ item, onDelete, deleting }: IngredientItemProps
       >
         <Ionicons name="trash-outline" size={18} color={colors.danger} />
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 
@@ -70,6 +111,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
+  statusPill: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
   deleteBtn: {
     width: 40,
     height: 40,
@@ -79,7 +131,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft,
   },
   pressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.96 }],
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
 });

@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   Alert,
@@ -19,6 +19,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
+import type { DataScope } from '@/types/api';
 
 const SUGGESTIONS = ['양파', '당근', '계란', '우유', '두부', '김치', '밥', '닭가슴살'];
 
@@ -33,9 +34,12 @@ function todayISO(): string {
 export default function AddIngredientScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ scope?: DataScope }>();
+  const scope = (params.scope ?? 'personal') as DataScope;
 
   const [rawInput, setRawInput] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(todayISO());
+  const [expirationDate, setExpirationDate] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const names = useMemo(() => {
@@ -46,9 +50,10 @@ export default function AddIngredientScreen() {
   }, [rawInput]);
 
   const mutation = useMutation({
-    mutationFn: addIngredients,
+    mutationFn: (payload: Parameters<typeof addIngredients>[0]) =>
+      addIngredients(payload, scope),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['ingredients'] });
+      await queryClient.invalidateQueries({ queryKey: ['ingredients', scope] });
       router.back();
     },
     onError: (err) => {
@@ -85,8 +90,14 @@ export default function AddIngredientScreen() {
       return;
     }
 
+    if (expirationDate && !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate)) {
+      setError('유통기한은 YYYY-MM-DD 형식이어야 합니다.');
+      return;
+    }
+
     mutation.mutate({
       purchase_date: purchaseDate,
+      expiration_date: expirationDate || null,
       ingredients: names,
     });
   };
@@ -133,6 +144,13 @@ export default function AddIngredientScreen() {
               onChangeText={setPurchaseDate}
               placeholder="YYYY-MM-DD"
               value={purchaseDate}
+            />
+
+            <TextField
+              label="유통기한 (선택)"
+              onChangeText={setExpirationDate}
+              placeholder="YYYY-MM-DD"
+              value={expirationDate}
             />
 
             {names.length > 0 ? (

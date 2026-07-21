@@ -2,6 +2,7 @@ import { apiClient } from '@/api/client';
 import type {
   AiRecipeDetail,
   AiRecipeRecommendationResponse,
+  DataScope,
   RecipeDetail,
   RecipeRecommendationResponse,
   SaveRecipeRequest,
@@ -11,9 +12,12 @@ import type {
   SavedRecipeStatus,
 } from '@/types/api';
 
-export async function getRecipeRecommendations(): Promise<RecipeRecommendationResponse> {
+export async function getRecipeRecommendations(
+  scope: DataScope = 'personal',
+): Promise<RecipeRecommendationResponse> {
   const { data } = await apiClient.get<RecipeRecommendationResponse>(
     '/recipes/recommendations',
+    { params: { scope } },
   );
   return data;
 }
@@ -32,17 +36,23 @@ const AI_REQUEST_TIMEOUT_MS = 60_000;
 
 export const SAVED_RECIPES_KEY = ['recipes', 'saved'] as const;
 
-export async function getAiRecipeRecommendations(): Promise<AiRecipeRecommendationResponse> {
+export async function getAiRecipeRecommendations(
+  scope: DataScope = 'personal',
+  refresh = false,
+): Promise<AiRecipeRecommendationResponse> {
   const { data } = await apiClient.get<AiRecipeRecommendationResponse>(
     '/recipes/ai/recommendations',
-    { timeout: AI_REQUEST_TIMEOUT_MS },
+    { params: { scope, refresh }, timeout: AI_REQUEST_TIMEOUT_MS },
   );
   return data;
 }
 
-export async function getAiRecipeDetail(recipeId: string): Promise<AiRecipeDetail> {
+export async function getAiRecipeDetail(
+  recipeId: string,
+  scope: DataScope = 'personal',
+): Promise<AiRecipeDetail> {
   const { data } = await apiClient.get<AiRecipeDetail>('/recipes/ai/detail', {
-    params: { recipe_id: recipeId },
+    params: { recipe_id: recipeId, scope },
     timeout: AI_REQUEST_TIMEOUT_MS,
   });
   return data;

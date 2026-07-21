@@ -1,11 +1,17 @@
 import { apiClient } from '@/api/client';
 import type {
   AuthResponse,
+  EmailResendRequest,
+  EmailVerifyRequest,
   KakaoCompleteRequest,
   KakaoAuthResponse,
   KakaoLoginResponse,
   LogInRequest,
+  OkResponse,
+  PasswordResetConfirmRequest,
+  PasswordResetRequest,
   SignUpRequest,
+  SignUpResponse,
 } from '@/types/api';
 
 export async function login(payload: LogInRequest): Promise<AuthResponse> {
@@ -13,8 +19,40 @@ export async function login(payload: LogInRequest): Promise<AuthResponse> {
   return data;
 }
 
-export async function signup(payload: SignUpRequest): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>('/users/signup', payload);
+export async function signup(payload: SignUpRequest): Promise<SignUpResponse> {
+  const { data } = await apiClient.post<SignUpResponse>('/users/signup', payload);
+  return data;
+}
+
+export async function verifyEmail(payload: EmailVerifyRequest): Promise<AuthResponse> {
+  const { data } = await apiClient.post<AuthResponse>('/auth/email/verify', payload);
+  return data;
+}
+
+export async function resendVerificationEmail(
+  payload: EmailResendRequest,
+): Promise<OkResponse> {
+  const { data } = await apiClient.post<OkResponse>('/auth/email/resend', payload);
+  return data;
+}
+
+export async function requestPasswordReset(
+  payload: PasswordResetRequest,
+): Promise<OkResponse> {
+  const { data } = await apiClient.post<OkResponse>(
+    '/auth/password/reset/request',
+    payload,
+  );
+  return data;
+}
+
+export async function confirmPasswordReset(
+  payload: PasswordResetConfirmRequest,
+): Promise<OkResponse> {
+  const { data } = await apiClient.post<OkResponse>(
+    '/auth/password/reset/confirm',
+    payload,
+  );
   return data;
 }
 

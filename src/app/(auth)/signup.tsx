@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -15,13 +15,11 @@ import { signup } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
 
 export default function SignupScreen() {
   const router = useRouter();
-  const setSession = useAuthStore((state) => state.setSession);
 
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
@@ -32,12 +30,10 @@ export default function SignupScreen() {
   const mutation = useMutation({
     mutationFn: signup,
     onSuccess: async (data) => {
-      if (!data.access_token) {
-        setError('가입은 완료됐지만 토큰이 없습니다. 다시 로그인해주세요.');
-        return;
-      }
-      await setSession(data.access_token, data.refresh_token, data.info);
-      router.replace('/(main)');
+      router.replace({
+        pathname: '/(auth)/verify-email',
+        params: { email: data.email },
+      } as unknown as Href);
     },
     onError: (err) => {
       setError(getErrorMessage(err, '회원가입에 실패했습니다.'));

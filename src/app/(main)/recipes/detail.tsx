@@ -24,9 +24,11 @@ import {
   SAVED_RECIPES_KEY,
 } from '@/api/recipes';
 import { Button } from '@/components/Button';
+import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
 import { clayShadow, clayShadowSoft } from '@/theme/shadows';
 import type {
+  DataScope,
   RecipeIngredient,
   SavedRecipeSource,
 } from '@/types/api';
@@ -72,18 +74,22 @@ export default function RecipeDetailScreen() {
     recipe_id: recipeIdParam,
     saved_id: savedIdParam,
     source: sourceParam,
+    scope: scopeParam,
   } = useLocalSearchParams<{
     board_name?: string | string[];
     author_name?: string | string[];
     recipe_id?: string | string[];
     saved_id?: string | string[];
     source?: string | string[];
+    scope?: string | string[];
   }>();
   const boardName = getFirstParam(boardNameParam);
   const authorName = getFirstParam(authorNameParam);
   const source = getFirstParam(sourceParam) ?? 'mangae';
   const recipeId = getFirstParam(recipeIdParam);
   const savedId = getFirstParam(savedIdParam);
+  const scopeStore = useScopeStore((state) => state.scope);
+  const dataScope = (getFirstParam(scopeParam) ?? scopeStore) as DataScope;
   const isAi = source === 'ai';
   const isSavedView = source === 'saved';
 
@@ -93,8 +99,8 @@ export default function RecipeDetailScreen() {
     enabled: !isSavedView && !isAi && Boolean(boardName && authorName),
   });
   const aiQuery = useQuery({
-    queryKey: ['recipes', 'ai', 'detail', recipeId],
-    queryFn: () => getAiRecipeDetail(recipeId!),
+    queryKey: ['recipes', 'ai', 'detail', recipeId, dataScope],
+    queryFn: () => getAiRecipeDetail(recipeId!, dataScope),
     enabled: !isSavedView && isAi && Boolean(recipeId),
   });
   const savedQuery = useQuery({

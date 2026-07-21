@@ -19,6 +19,7 @@ type AuthState = {
     refreshToken: string,
     user: UserInfo,
   ) => Promise<void>;
+  updateUser: (user: UserInfo) => Promise<void>;
   clearSession: () => Promise<void>;
 };
 
@@ -64,6 +65,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
     ]);
     set({ token: accessToken, refreshToken, user });
+  },
+
+  updateUser: async (user) => {
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    set({ user });
   },
 
   clearSession: async () => {

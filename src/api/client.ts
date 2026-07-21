@@ -43,6 +43,8 @@ function isAuthUrl(url?: string): boolean {
     url.includes('/auth/login') ||
     url.includes('/auth/refresh') ||
     url.includes('/auth/logout') ||
+    url.includes('/auth/email/') ||
+    url.includes('/auth/password/') ||
     url.includes('/users/signup')
   );
 }

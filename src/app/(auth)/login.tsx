@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -187,10 +187,15 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>아직 계정이 없나요?</Text>
-            <Link href="/(auth)/signup" style={styles.link}>
-              회원가입
+            <Link href={'/(auth)/password-reset' as Href} style={styles.forgotLink}>
+              비밀번호를 잊으셨나요?
             </Link>
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>아직 계정이 없나요?</Text>
+              <Link href="/(auth)/signup" style={styles.link}>
+                회원가입
+              </Link>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -295,10 +300,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   footer: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
+  },
+  forgotLink: {
+    color: colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
   },
   footerText: {
     color: colors.textMuted,

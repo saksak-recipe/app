@@ -13,8 +13,14 @@ export default function MainLayout() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Stack.Screen name="index" options={{ title: '내 냉장고' }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="add" options={{ title: '식재료 추가', presentation: 'modal' }} />
+      <Stack.Screen
+        name="edit-ingredient"
+        options={{ title: '식재료 수정', presentation: 'modal' }}
+      />
+      <Stack.Screen name="merge" options={{ title: '가족으로 보내기' }} />
       <Stack.Screen name="recipes/index" options={{ title: '레시피 추천' }} />
       <Stack.Screen name="recipes/detail" options={{ title: '레시피 상세' }} />
     </Stack>
