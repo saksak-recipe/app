@@ -16,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getErrorMessage } from '@/api/client';
 import {
   deleteSavedRecipe,
-  getAiRecipeDetail,
   getRecipeDetail,
   getSavedRecipe,
   getSavedRecipeStatus,
@@ -24,14 +23,9 @@ import {
   SAVED_RECIPES_KEY,
 } from '@/api/recipes';
 import { Button } from '@/components/Button';
-import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
 import { clayShadow, clayShadowSoft } from '@/theme/shadows';
-import type {
-  DataScope,
-  RecipeIngredient,
-  SavedRecipeSource,
-} from '@/types/api';
+import type { RecipeIngredient, SavedRecipeSource } from '@/types/api';
 
 function getFirstParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -71,37 +65,24 @@ export default function RecipeDetailScreen() {
   const {
     author_name: authorNameParam,
     board_name: boardNameParam,
-    recipe_id: recipeIdParam,
     saved_id: savedIdParam,
     source: sourceParam,
-    scope: scopeParam,
   } = useLocalSearchParams<{
     board_name?: string | string[];
     author_name?: string | string[];
-    recipe_id?: string | string[];
     saved_id?: string | string[];
     source?: string | string[];
-    scope?: string | string[];
   }>();
   const boardName = getFirstParam(boardNameParam);
   const authorName = getFirstParam(authorNameParam);
   const source = getFirstParam(sourceParam) ?? 'mangae';
-  const recipeId = getFirstParam(recipeIdParam);
   const savedId = getFirstParam(savedIdParam);
-  const scopeStore = useScopeStore((state) => state.scope);
-  const dataScope = (getFirstParam(scopeParam) ?? scopeStore) as DataScope;
-  const isAi = source === 'ai';
   const isSavedView = source === 'saved';
 
   const mangaeQuery = useQuery({
     queryKey: ['recipes', 'detail', boardName, authorName],
     queryFn: () => getRecipeDetail(boardName!, authorName!),
-    enabled: !isSavedView && !isAi && Boolean(boardName && authorName),
-  });
-  const aiQuery = useQuery({
-    queryKey: ['recipes', 'ai', 'detail', recipeId, dataScope],
-    queryFn: () => getAiRecipeDetail(recipeId!, dataScope),
-    enabled: !isSavedView && isAi && Boolean(recipeId),
+    enabled: !isSavedView && Boolean(boardName && authorName),
   });
   const savedQuery = useQuery({
     queryKey: ['recipes', 'saved', savedId],
@@ -111,16 +92,12 @@ export default function RecipeDetailScreen() {
 
   const saveSource: SavedRecipeSource | null = isSavedView
     ? (savedQuery.data?.source ?? null)
-    : isAi
-      ? 'ai'
-      : 'mangae';
+    : 'mangae';
   const saveSourceId = isSavedView
     ? (savedQuery.data?.source_id ?? null)
-    : isAi
-      ? (recipeId ?? null)
-      : boardName && authorName
-        ? `${boardName}|${authorName}`
-        : null;
+    : boardName && authorName
+      ? `${boardName}|${authorName}`
+      : null;
 
   const statusQuery = useQuery({
     queryKey:
@@ -203,11 +180,11 @@ export default function RecipeDetailScreen() {
   if (isSavedView && !savedId) {
     return <DetailError message="해당 레시피를 찾지 못했어요" />;
   }
-  if (!isSavedView && ((isAi && !recipeId) || (!isAi && (!boardName || !authorName)))) {
+  if (!isSavedView && (!boardName || !authorName)) {
     return <DetailError message="해당 레시피를 찾지 못했어요" />;
   }
 
-  const detailQuery = isSavedView ? savedQuery : isAi ? aiQuery : mangaeQuery;
+  const detailQuery = isSavedView ? savedQuery : mangaeQuery;
 
   if (detailQuery.isLoading) {
     return (
@@ -254,17 +231,6 @@ export default function RecipeDetailScreen() {
         tips: saved.snapshot.tips,
         owned_ingredients: saved.snapshot.owned_ingredients,
         missing_ingredients: saved.snapshot.missing_ingredients,
-      };
-    }
-    if (isAi) {
-      const ai = aiQuery.data!;
-      return {
-        recipe_name: ai.recipe_name,
-        ingredients: ai.ingredients,
-        steps: ai.steps,
-        tips: ai.tips,
-        owned_ingredients: ai.owned_ingredients,
-        missing_ingredients: ai.missing_ingredients,
       };
     }
     const mangae = mangaeQuery.data!;
