@@ -75,7 +75,7 @@ export default function NotificationsScreen() {
         await markNotificationRead(item.id);
         await invalidateNotificationQueries(queryClient);
       }
-      router.replace('/(main)/(tabs)' as Href);
+      router.replace('/(main)/(tabs)/fridge' as Href);
     } catch (err) {
       Alert.alert('오류', getErrorMessage(err));
     }
