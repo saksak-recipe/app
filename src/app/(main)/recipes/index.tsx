@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useLayoutEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigation, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -14,213 +13,78 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import {
-  deleteSavedRecipe,
-  getAiRecipeRecommendations,
-  getRecipeRecommendations,
-  listSavedRecipes,
-  SAVED_RECIPES_KEY,
-} from '@/api/recipes';
+import { getRecipeRecommendations } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { RecipeCard } from '@/components/RecipeCard';
-import { SavedRecipeCard } from '@/components/SavedRecipeCard';
 import { ScopeToggle } from '@/components/ScopeToggle';
 import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
-import type {
-  AiRecipeRecommendation,
-  RecipeRecommendation,
-  SavedRecipeListItem,
-} from '@/types/api';
+import type { RecipeRecommendation } from '@/types/api';
 
 const RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'recommendations'] as const;
-const AI_RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'ai', 'recommendations'] as const;
-
-type RecipeSourceTab = 'mangae' | 'ai' | 'saved';
-type RecipeListItem = RecipeRecommendation | AiRecipeRecommendation;
 
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const navigation = useNavigation();
   const scope = useScopeStore((state) => state.scope);
   const hasGroup = useScopeStore((state) => state.hasGroup);
   const setScope = useScopeStore((state) => state.setScope);
-  const [tab, setTab] = useState<RecipeSourceTab>('mangae');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const mangaeQuery = useQuery({
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          accessibilityLabel="저장한 레시피"
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => router.push('/(main)/recipes/saved')}
+          style={{ paddingHorizontal: 4, paddingVertical: 4 }}
+        >
+          <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: '700' }}>
+            저장
+          </Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation, router]);
+
+  const query = useQuery({
     queryKey: [...RECIPE_RECOMMENDATIONS_KEY, scope],
     queryFn: () => getRecipeRecommendations(scope),
-    enabled: tab === 'mangae',
-  });
-  const aiQuery = useQuery({
-    queryKey: [...AI_RECIPE_RECOMMENDATIONS_KEY, scope],
-    queryFn: () => getAiRecipeRecommendations(scope),
-    enabled: tab === 'ai',
-  });
-  const savedQuery = useQuery({
-    queryKey: SAVED_RECIPES_KEY,
-    queryFn: listSavedRecipes,
-    enabled: tab === 'saved',
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteSavedRecipe,
-    onMutate: (id) => {
-      setDeletingId(id);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: SAVED_RECIPES_KEY });
-      await queryClient.invalidateQueries({ queryKey: ['recipes', 'saved', 'status'] });
-    },
-    onError: (err) => {
-      Alert.alert('삭제 실패', getErrorMessage(err));
-    },
-    onSettled: () => {
-      setDeletingId(null);
-    },
-  });
-
-  const activeQuery =
-    tab === 'mangae' ? mangaeQuery : tab === 'ai' ? aiQuery : savedQuery;
-  const recipes: RecipeListItem[] =
-    tab === 'saved' ? [] : (activeQuery.data as { recipes?: RecipeListItem[] } | undefined)?.recipes ?? [];
-  const savedRecipes: SavedRecipeListItem[] =
-    tab === 'saved' ? (savedQuery.data ?? []) : [];
-
-  const renderRecipe = ({ item }: { item: RecipeListItem }) => (
-    <RecipeCard
-      recipe={item}
-      onPress={() =>
-        'recipe_id' in item
-          ? router.push({
-              pathname: '/(main)/recipes/detail',
-              params: { source: 'ai', recipe_id: item.recipe_id, scope },
-            })
-          : router.push({
-              pathname: '/(main)/recipes/detail',
-              params: {
-                board_name: item.board_name,
-                author_name: item.author_name,
-              },
-            })
-      }
-    />
-  );
-
-  const renderSaved = ({ item }: { item: SavedRecipeListItem }) => (
-    <SavedRecipeCard
-      recipe={item}
-      deleting={deletingId === item.id}
-      onPress={() =>
-        router.push({
-          pathname: '/(main)/recipes/detail',
-          params: { source: 'saved', saved_id: item.id },
-        })
-      }
-      onDelete={() => {
-        Alert.alert('저장 삭제', `"${item.recipe_name}"을(를) 삭제할까요?`, [
-          { text: '취소', style: 'cancel' },
-          {
-            text: '삭제',
-            style: 'destructive',
-            onPress: () => deleteMutation.mutate(item.id),
-          },
-        ]);
-      }}
-    />
-  );
-
-  const tabs = (
-    <View style={styles.tabs}>
-      {(
-        [
-          { key: 'mangae', label: '만개' },
-          { key: 'ai', label: 'AI' },
-          { key: 'saved', label: '저장' },
-        ] as const
-      ).map(({ key, label }) => (
-        <Pressable
-          key={key}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: tab === key }}
-          onPress={() => setTab(key)}
-          style={[styles.tab, tab === key && styles.tabActive]}
-        >
-          <Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
+  const recipes: RecipeRecommendation[] = query.data?.recipes ?? [];
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
-      {hasGroup && tab !== 'saved' ? (
+      {hasGroup ? (
         <View style={styles.scopeWrap}>
           <ScopeToggle scope={scope} onChange={setScope} />
         </View>
       ) : null}
-      {tabs}
-      {activeQuery.isLoading ? (
+      {query.isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
-          {tab === 'ai' ? (
-            <Text style={styles.loadingHint}>냉장고 재료로 레시피를 고르는 중…</Text>
-          ) : null}
+          <Text style={styles.loadingHint}>냉장고 재료로 레시피를 고르는 중…</Text>
         </View>
-      ) : activeQuery.isError ? (
+      ) : query.isError ? (
         <View style={styles.center}>
-          <Text style={styles.errorTitle}>
-            {tab === 'ai'
-              ? 'AI 레시피를 불러오지 못했어요'
-              : tab === 'saved'
-                ? '저장한 레시피를 불러오지 못했어요'
-                : '레시피를 불러오지 못했어요'}
-          </Text>
-          <Text style={styles.errorDesc}>{getErrorMessage(activeQuery.error)}</Text>
+          <Text style={styles.errorTitle}>레시피를 불러오지 못했어요</Text>
+          <Text style={styles.errorDesc}>{getErrorMessage(query.error)}</Text>
           <Button
             title="다시 시도"
             variant="secondary"
-            onPress={() => void activeQuery.refetch()}
+            onPress={() => void query.refetch()}
           />
         </View>
-      ) : tab === 'saved' ? (
-        <FlatList
-          contentContainerStyle={styles.list}
-          data={savedRecipes}
-          keyExtractor={(item) => item.id}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>저장한 레시피가 없어요</Text>
-              <Text style={styles.emptyDescription}>
-                추천 레시피 상세에서 저장하면 여기에서 다시 볼 수 있어요.
-              </Text>
-            </View>
-          }
-          refreshControl={
-            <RefreshControl
-              refreshing={savedQuery.isRefetching}
-              onRefresh={() => void savedQuery.refetch()}
-              tintColor={colors.primary}
-            />
-          }
-          renderItem={renderSaved}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
       ) : (
         <FlatList
           contentContainerStyle={styles.list}
           data={recipes}
-          keyExtractor={(item) =>
-            'recipe_id' in item
-              ? item.recipe_id
-              : `${item.board_name}-${item.author_name}`
-          }
+          keyExtractor={(item) => `${item.board_name}-${item.author_name}`}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>
-                {tab === 'ai' ? '추천할 AI 레시피가 없어요' : '추천할 레시피가 없어요'}
-              </Text>
+              <Text style={styles.emptyTitle}>추천할 레시피가 없어요</Text>
               <Text style={styles.emptyDescription}>
                 식재료를 추가하면 맞춤 레시피를 추천해 드릴게요.
               </Text>
@@ -228,12 +92,25 @@ export default function RecipeRecommendationsScreen() {
           }
           refreshControl={
             <RefreshControl
-              refreshing={activeQuery.isRefetching}
-              onRefresh={() => void activeQuery.refetch()}
+              refreshing={query.isRefetching}
+              onRefresh={() => void query.refetch()}
               tintColor={colors.primary}
             />
           }
-          renderItem={renderRecipe}
+          renderItem={({ item }) => (
+            <RecipeCard
+              recipe={item}
+              onPress={() =>
+                router.push({
+                  pathname: '/(main)/recipes/detail',
+                  params: {
+                    board_name: item.board_name,
+                    author_name: item.author_name,
+                  },
+                })
+              }
+            />
+          )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
@@ -249,32 +126,6 @@ const styles = StyleSheet.create({
   scopeWrap: {
     marginHorizontal: 20,
     marginTop: 12,
-  },
-  tabs: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 4,
-    borderRadius: 16,
-    backgroundColor: colors.primarySoft,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    borderRadius: 12,
-    paddingVertical: 10,
-  },
-  tabActive: {
-    backgroundColor: colors.surface,
-  },
-  tabText: {
-    color: colors.textMuted,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  tabTextActive: {
-    color: colors.primaryDark,
-    fontWeight: '800',
   },
   list: {
     padding: 20,
