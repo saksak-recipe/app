@@ -32,7 +32,8 @@ import { TextField } from '@/components/TextField';
 import { useAuthStore } from '@/stores/authStore';
 import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
+import { spacing } from '@/theme/spacing';
 
 export default function GroupScreen() {
   const router = useRouter();
@@ -185,50 +186,52 @@ export default function GroupScreen() {
     return (
       <SafeAreaView edges={['bottom']} style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.card}>
+          <View style={styles.header}>
             <Text style={styles.title}>{group.name}</Text>
             <Text style={styles.meta}>멤버 {group.members.length}명</Text>
             <View style={styles.codeBox}>
               <Text style={styles.codeLabel}>초대 코드</Text>
               <Text style={styles.codeValue}>{group.invite_code}</Text>
             </View>
+          </View>
 
-            {isOwner ? (
-              <>
-                <TextField
-                  label="그룹 이름"
-                  onChangeText={setRenameValue}
-                  value={renameValue}
-                />
-                <Button
-                  loading={renameMutation.isPending}
-                  disabled={isBusy}
-                  onPress={() => renameMutation.mutate()}
-                  title="이름 변경"
-                  variant="secondary"
-                />
-                <TextField
-                  label="닉네임으로 초대"
-                  onChangeText={setInviteNickname}
-                  placeholder="초대할 닉네임"
-                  value={inviteNickname}
-                />
-                <Button
-                  loading={inviteMutation.isPending}
-                  disabled={isBusy || inviteNickname.trim().length < 2}
-                  onPress={() => inviteMutation.mutate()}
-                  title="초대 보내기"
-                />
-                <Button
-                  loading={rotateMutation.isPending}
-                  disabled={isBusy}
-                  onPress={() => rotateMutation.mutate()}
-                  title="초대 코드 재발급"
-                  variant="secondary"
-                />
-              </>
-            ) : null}
+          {isOwner ? (
+            <View style={styles.section}>
+              <TextField
+                label="그룹 이름"
+                onChangeText={setRenameValue}
+                value={renameValue}
+              />
+              <Button
+                loading={renameMutation.isPending}
+                disabled={isBusy}
+                onPress={() => renameMutation.mutate()}
+                title="이름 변경"
+                variant="secondary"
+              />
+              <TextField
+                label="닉네임으로 초대"
+                onChangeText={setInviteNickname}
+                placeholder="초대할 닉네임"
+                value={inviteNickname}
+              />
+              <Button
+                loading={inviteMutation.isPending}
+                disabled={isBusy || inviteNickname.trim().length < 2}
+                onPress={() => inviteMutation.mutate()}
+                title="초대 보내기"
+              />
+              <Button
+                loading={rotateMutation.isPending}
+                disabled={isBusy}
+                onPress={() => rotateMutation.mutate()}
+                title="초대 코드 재발급"
+                variant="secondary"
+              />
+            </View>
+          ) : null}
 
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>멤버</Text>
             {group.members.map((member) => (
               <View key={member.user_id} style={styles.memberRow}>
@@ -260,7 +263,9 @@ export default function GroupScreen() {
                 ) : null}
               </View>
             ))}
+          </View>
 
+          <View style={styles.section}>
             <Button
               title="내 항목 가족으로 보내기"
               variant="secondary"
@@ -313,12 +318,14 @@ export default function GroupScreen() {
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
+        <View style={styles.header}>
           <Text style={styles.title}>가족 그룹</Text>
           <Text style={styles.subtitle}>
             가족과 냉장고와 장보기 목록을 함께 관리해보세요.
           </Text>
+        </View>
 
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>그룹 만들기</Text>
           <TextField
             label="그룹 이름"
@@ -332,7 +339,9 @@ export default function GroupScreen() {
             onPress={() => createMutation.mutate()}
             title="그룹 생성"
           />
+        </View>
 
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>초대 코드로 참여</Text>
           <TextField
             autoCapitalize="none"
@@ -352,7 +361,7 @@ export default function GroupScreen() {
         </View>
 
         {invites.length > 0 ? (
-          <View style={styles.card}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>받은 초대</Text>
             {invites.map((invite) => (
               <View key={invite.id} style={styles.inviteRow}>
@@ -388,14 +397,20 @@ export default function GroupScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, gap: 16 },
+  content: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    gap: spacing.section,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  card: {
+  header: { gap: spacing.sm },
+  section: {
     backgroundColor: colors.surface,
-    borderRadius: 28,
-    padding: 20,
-    gap: 14,
-    ...clayShadow,
+    borderRadius: 20,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...clayShadowSoft,
   },
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
   subtitle: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
@@ -417,7 +432,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: colors.text,
-    marginTop: 8,
   },
   memberRow: {
     flexDirection: 'row',
