@@ -15,6 +15,7 @@ import {
 import { getErrorMessage } from '@/api/client';
 import { acceptInvite, rejectInvite } from '@/api/groups';
 import {
+  deleteNotification,
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -32,12 +33,12 @@ async function invalidateNotificationQueries(
   ]);
 }
 
-async function markReadAfterInviteHandled(
+async function deleteAfterInviteHandled(
   queryClient: ReturnType<typeof useQueryClient>,
   notificationId: string,
 ): Promise<void> {
   try {
-    await markNotificationRead(notificationId);
+    await deleteNotification(notificationId);
     await invalidateNotificationQueries(queryClient);
   } catch {
     /* ignore */
@@ -91,19 +92,19 @@ export default function NotificationsScreen() {
       await acceptInvite(inviteId);
       await queryClient.invalidateQueries({ queryKey: ['group'] });
       try {
-        await markNotificationRead(item.id);
+        await deleteNotification(item.id);
         await invalidateNotificationQueries(queryClient);
       } catch {
         Alert.alert(
           '알림',
-          '초대는 처리됐지만 알림 읽음 처리에 실패했어요',
+          '초대는 처리됐지만 알림 삭제에 실패했어요',
         );
       }
     } catch (err) {
       Alert.alert('수락 실패', getErrorMessage(err));
       const status = isAxiosError(err) ? err.response?.status : undefined;
       if (status === 404) {
-        await markReadAfterInviteHandled(queryClient, item.id);
+        await deleteAfterInviteHandled(queryClient, item.id);
       }
     } finally {
       setBusyId(null);
@@ -121,19 +122,19 @@ export default function NotificationsScreen() {
       await rejectInvite(inviteId);
       await queryClient.invalidateQueries({ queryKey: ['group'] });
       try {
-        await markNotificationRead(item.id);
+        await deleteNotification(item.id);
         await invalidateNotificationQueries(queryClient);
       } catch {
         Alert.alert(
           '알림',
-          '초대는 처리됐지만 알림 읽음 처리에 실패했어요',
+          '초대는 처리됐지만 알림 삭제에 실패했어요',
         );
       }
     } catch (err) {
       Alert.alert('거절 실패', getErrorMessage(err));
       const status = isAxiosError(err) ? err.response?.status : undefined;
       if (status === 404) {
-        await markReadAfterInviteHandled(queryClient, item.id);
+        await deleteAfterInviteHandled(queryClient, item.id);
       }
     } finally {
       setBusyId(null);
