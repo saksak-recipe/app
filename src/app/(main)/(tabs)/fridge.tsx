@@ -26,7 +26,7 @@ import { ScopeToggle } from '@/components/ScopeToggle';
 import { useAuthStore } from '@/stores/authStore';
 import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { spacing } from '@/theme/spacing';
 import type { Ingredient } from '@/types/api';
 
 function ingredientsKey(scope: string) {
@@ -109,7 +109,7 @@ export default function FridgeScreen() {
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
-      <View style={styles.headerCard}>
+      <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>안녕하세요</Text>
           <Text style={styles.nickname}>{user?.nickname ?? '회원'}님</Text>
@@ -216,15 +216,11 @@ export default function FridgeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  headerCard: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 14,
-    padding: 20,
-    borderRadius: 28,
-    backgroundColor: colors.surface,
-    gap: 14,
-    ...clayShadow,
+  header: {
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
   greeting: { fontSize: 14, color: colors.textMuted },
   nickname: {
@@ -242,29 +238,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
   },
   countText: { fontSize: 13, fontWeight: '700', color: colors.accent },
-  list: { paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 },
-  separator: { height: 12 },
+  list: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+    flexGrow: 1,
+  },
+  separator: { height: spacing.lg },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 12,
+    paddingHorizontal: spacing.xxl,
+    gap: spacing.md,
   },
   errorTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
   errorDesc: {
     fontSize: 14,
     color: colors.textMuted,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   actions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   full: { width: '100%' },
   half: { flex: 1 },
