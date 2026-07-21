@@ -147,6 +147,25 @@ export type GroupInvite = {
   created_at: string;
 };
 
+export type NotificationType =
+  | 'group_invite'
+  | 'expiry_soon'
+  | 'expiry_expired';
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  payload: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+};
+
+export type UnreadCountResponse = {
+  count: number;
+};
+
 export type CreateGroupRequest = {
   name: string;
 };
