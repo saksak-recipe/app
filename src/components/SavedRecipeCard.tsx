@@ -18,8 +18,6 @@ export function SavedRecipeCard({
   onPress,
   onDelete,
 }: SavedRecipeCardProps) {
-  const sourceLabel = recipe.source === 'ai' ? 'AI' : '만개';
-
   return (
     <Pressable
       accessibilityLabel={`${recipe.recipe_name} 저장 레시피 보기`}
@@ -28,9 +26,6 @@ export function SavedRecipeCard({
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.titleRow}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{sourceLabel}</Text>
-        </View>
         <Text numberOfLines={1} style={styles.name}>
           {recipe.recipe_name}
         </Text>
@@ -81,17 +76,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  badge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: colors.primarySoft,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.primaryDark,
   },
   name: {
     flex: 1,
