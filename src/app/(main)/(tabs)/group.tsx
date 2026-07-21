@@ -81,7 +81,8 @@ export default function GroupScreen() {
   });
 
   const joinMutation = useMutation({
-    mutationFn: () => joinByCode({ invite_code: inviteCode.trim() }),
+    mutationFn: () =>
+      joinByCode({ invite_code: inviteCode.trim().toLowerCase() }),
     onSuccess: async () => {
       setInviteCode('');
       await invalidateGroup();
@@ -334,9 +335,10 @@ export default function GroupScreen() {
 
           <Text style={styles.sectionTitle}>초대 코드로 참여</Text>
           <TextField
-            autoCapitalize="characters"
+            autoCapitalize="none"
+            autoCorrect={false}
             label="초대 코드"
-            onChangeText={setInviteCode}
+            onChangeText={(text) => setInviteCode(text.toLowerCase())}
             placeholder="초대 코드 입력"
             value={inviteCode}
           />
