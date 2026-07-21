@@ -16,11 +16,13 @@ export type AuthResponse = {
 export type SignUpResponse = {
   email: string;
   message: string;
+  expires_in_seconds: number;
 };
 
 export type OkResponse = {
   ok: boolean;
   message?: string;
+  expires_in_seconds?: number;
 };
 
 export type KakaoAuthResponse = AuthResponse & {

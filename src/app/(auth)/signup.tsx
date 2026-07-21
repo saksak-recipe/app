@@ -32,7 +32,10 @@ export default function SignupScreen() {
     onSuccess: async (data) => {
       router.replace({
         pathname: '/(auth)/verify-email',
-        params: { email: data.email },
+        params: {
+          email: data.email,
+          expiresIn: String(data.expires_in_seconds),
+        },
       } as unknown as Href);
     },
     onError: (err) => {

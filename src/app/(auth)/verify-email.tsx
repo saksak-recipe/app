@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,15 +19,34 @@ import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
 
+const DEFAULT_EXPIRES_IN_SECONDS = 180;
+
+function formatRemainingTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 export default function VerifyEmailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ email?: string }>();
+  const params = useLocalSearchParams<{ email?: string; expiresIn?: string }>();
   const setSession = useAuthStore((state) => state.setSession);
+
+  const initialExpiresIn = Number(params.expiresIn) || DEFAULT_EXPIRES_IN_SECONDS;
 
   const [email, setEmail] = useState(params.email ?? '');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(initialExpiresIn);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemainingSeconds((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const verifyMutation = useMutation({
     mutationFn: verifyEmail,
@@ -42,16 +61,19 @@ export default function VerifyEmailScreen() {
 
   const resendMutation = useMutation({
     mutationFn: resendVerificationEmail,
-    onSuccess: () => {
+    onSuccess: (data) => {
       setResent(true);
       setError(null);
+      setRemainingSeconds(data.expires_in_seconds ?? DEFAULT_EXPIRES_IN_SECONDS);
     },
     onError: (err) => {
       setError(getErrorMessage(err, '인증 코드 재발송에 실패했습니다.'));
     },
   });
 
-  const canSubmit = email.trim().length > 0 && code.length === 6;
+  const canSubmit =
+    email.trim().length > 0 && code.length === 6 && remainingSeconds > 0;
+  const canResend = email.trim().length > 0 && !resent && !verifyMutation.isPending;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -90,6 +112,17 @@ export default function VerifyEmailScreen() {
               value={code}
             />
 
+            <Text
+              style={[
+                styles.timer,
+                remainingSeconds <= 0 ? styles.timerExpired : null,
+              ]}
+            >
+              {remainingSeconds > 0
+                ? `남은 시간 ${formatRemainingTime(remainingSeconds)}`
+                : '인증 코드 입력 시간이 만료되었습니다. 재발송해 주세요.'}
+            </Text>
+
             {resent ? (
               <Text style={styles.success}>인증 코드를 다시 보냈어요.</Text>
             ) : null}
@@ -107,12 +140,12 @@ export default function VerifyEmailScreen() {
 
             <Button
               loading={resendMutation.isPending}
-              disabled={email.trim().length === 0 || verifyMutation.isPending}
+              disabled={!canResend}
               onPress={() => {
-                setResent(false);
+                setError(null);
                 resendMutation.mutate({ email: email.trim() });
               }}
-              title="인증 코드 재발송"
+              title={resent ? '재발송 완료' : '인증 코드 재발송'}
               variant="secondary"
             />
           </View>
@@ -163,6 +196,14 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 14,
     ...clayShadow,
+  },
+  timer: {
+    color: colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  timerExpired: {
+    color: colors.danger,
   },
   error: { color: colors.danger, fontSize: 14 },
   success: { color: colors.primary, fontSize: 14, fontWeight: '600' },
