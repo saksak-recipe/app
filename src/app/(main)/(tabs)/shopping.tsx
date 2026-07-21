@@ -27,7 +27,7 @@ import { ShoppingItemRow } from '@/components/ShoppingItemRow';
 import { TextField } from '@/components/TextField';
 import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { spacing } from '@/theme/spacing';
 
 function shoppingKey(scope: string) {
   return ['shopping', scope] as const;
@@ -137,7 +137,7 @@ export default function ShoppingScreen() {
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
-      <View style={styles.headerCard}>
+      <View style={styles.header}>
         <Text style={styles.title}>장보기 목록</Text>
         <Text style={styles.subtitle}>사야 할 재료를 체크하고 냉장고로 옮겨보세요.</Text>
         {hasGroup ? (
@@ -230,32 +230,32 @@ export default function ShoppingScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  headerCard: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 14,
-    padding: 20,
-    borderRadius: 28,
-    backgroundColor: colors.surface,
-    gap: 12,
-    ...clayShadow,
+  header: {
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
   title: { fontSize: 22, fontWeight: '800', color: colors.text },
   subtitle: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
   addRow: { gap: 10 },
   input: { marginBottom: 0 },
   addBtn: { alignSelf: 'flex-end', minWidth: 100 },
-  list: { paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 },
-  separator: { height: 10 },
+  list: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+    flexGrow: 1,
+  },
+  separator: { height: spacing.lg },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xxl,
   },
   errorTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
   empty: { alignItems: 'center', paddingTop: 60, gap: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
   emptyDesc: { fontSize: 14, color: colors.textMuted },
-  actions: { paddingHorizontal: 20, paddingBottom: 12 },
+  actions: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
 });
