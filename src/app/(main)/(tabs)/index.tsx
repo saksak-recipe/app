@@ -20,8 +20,6 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { selectExpiringIngredients } from '@/lib/ingredients';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-import { radius } from '@/theme/radius';
-import { clayShadow } from '@/theme/shadows';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import type { Ingredient, RecipeRecommendation } from '@/types/api';
@@ -99,7 +97,7 @@ export default function HomeScreen() {
             />
           }
         >
-          <View style={styles.headerCard}>
+          <View style={styles.header}>
             <Text style={styles.greeting}>안녕하세요</Text>
             <Text style={styles.nickname}>{user?.nickname ?? '회원'}님</Text>
           </View>
@@ -201,21 +199,19 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
-    gap: spacing.xl,
+    gap: spacing.section,
   },
-  headerCard: {
-    padding: spacing.xl,
-    borderRadius: radius.card,
-    backgroundColor: colors.surface,
+  header: {
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
     gap: spacing.xs,
-    ...clayShadow,
   },
   greeting: typography.caption,
   nickname: typography.title,
-  section: { gap: spacing.sm },
-  listGap: { gap: spacing.md },
+  section: { gap: spacing.md },
+  listGap: { gap: spacing.lg },
   center: {
     flex: 1,
     alignItems: 'center',
