@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigation, useRouter } from 'expo-router';
+import { useNavigation, useRouter, type Href } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -37,7 +37,7 @@ export default function RecipeRecommendationsScreen() {
           accessibilityLabel="저장한 레시피"
           accessibilityRole="button"
           hitSlop={8}
-          onPress={() => router.push('/(main)/recipes/saved')}
+          onPress={() => router.push('/(main)/recipes/saved' as Href)}
           style={{ paddingHorizontal: 4, paddingVertical: 4 }}
         >
           <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: '700' }}>
