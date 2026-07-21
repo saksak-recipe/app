@@ -17,7 +17,8 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
+import { spacing } from '@/theme/spacing';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -122,10 +123,20 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView edges={['bottom']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
+        <View style={styles.header}>
           <Text style={styles.title}>내 계정</Text>
           <Text style={styles.email}>{user?.email}</Text>
+          <View style={styles.badges}>
+            {user?.has_password ? (
+              <Text style={styles.badge}>이메일 로그인</Text>
+            ) : null}
+            {user?.has_kakao ? (
+              <Text style={styles.badge}>카카오 연동</Text>
+            ) : null}
+          </View>
+        </View>
 
+        <View style={styles.section}>
           <TextField
             label="닉네임"
             maxLength={20}
@@ -139,7 +150,9 @@ export default function SettingsScreen() {
             title="닉네임 저장"
             variant="secondary"
           />
+        </View>
 
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>비밀번호 변경</Text>
           {user?.has_password ? (
             <TextField
@@ -173,18 +186,10 @@ export default function SettingsScreen() {
             onPress={() => passwordMutation.mutate()}
             title="비밀번호 변경"
           />
-
           {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <View style={styles.badges}>
-            {user?.has_password ? (
-              <Text style={styles.badge}>이메일 로그인</Text>
-            ) : null}
-            {user?.has_kakao ? <Text style={styles.badge}>카카오 연동</Text> : null}
-          </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.section}>
           <Button title="로그아웃" variant="secondary" onPress={onLogout} />
           <Button
             loading={deleteMutation.isPending}
@@ -200,13 +205,19 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, gap: 16 },
-  card: {
+  content: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    gap: spacing.section,
+  },
+  header: { gap: spacing.sm },
+  section: {
     backgroundColor: colors.surface,
-    borderRadius: 28,
-    padding: 20,
-    gap: 14,
-    ...clayShadow,
+    borderRadius: 20,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...clayShadowSoft,
   },
   title: { fontSize: 22, fontWeight: '800', color: colors.text },
   email: { fontSize: 14, color: colors.textMuted },
@@ -214,7 +225,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: colors.text,
-    marginTop: 8,
   },
   error: { color: colors.danger, fontSize: 14 },
   badges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
