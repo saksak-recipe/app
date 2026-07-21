@@ -22,6 +22,7 @@ export default function MainLayout() {
       />
       <Stack.Screen name="merge" options={{ title: '가족으로 보내기' }} />
       <Stack.Screen name="recipes/index" options={{ title: '만개의레시피' }} />
+      <Stack.Screen name="recipes/saved" options={{ title: '저장한 레시피' }} />
       <Stack.Screen name="recipes/detail" options={{ title: '레시피 상세' }} />
       <Stack.Screen name="notifications" options={{ title: '알림' }} />
     </Stack>
