@@ -28,7 +28,16 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '내 냉장고',
+          title: '홈',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="fridge"
+        options={{
+          title: '냉장고',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="nutrition-outline" size={size} color={color} />
           ),
