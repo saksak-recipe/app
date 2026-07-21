@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Ingredient, IngredientStatus } from '@/types/api';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 type IngredientItemProps = {
   item: Ingredient;
@@ -83,12 +83,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    ...clayShadow,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    ...clayShadowSoft,
   },
   iconWrap: {
     width: 44,

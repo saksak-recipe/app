@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 type RecipeCardRecipe = {
   recipe_name: string;
@@ -54,10 +54,10 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 18,
+    borderRadius: 20,
+    padding: 16,
     gap: 8,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   titleRow: {
     flexDirection: 'row',

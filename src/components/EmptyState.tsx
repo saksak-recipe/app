@@ -41,7 +41,7 @@ export function EmptyState({
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.section,
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },
