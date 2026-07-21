@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
@@ -31,6 +32,18 @@ async function invalidateNotificationQueries(
   ]);
 }
 
+async function markReadAfterInviteHandled(
+  queryClient: ReturnType<typeof useQueryClient>,
+  notificationId: string,
+): Promise<void> {
+  try {
+    await markNotificationRead(notificationId);
+    await invalidateNotificationQueries(queryClient);
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function NotificationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -43,11 +56,8 @@ export default function NotificationsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      void listQuery.refetch();
-      void queryClient.invalidateQueries({
-        queryKey: ['notifications', 'unread-count'],
-      });
-    }, [listQuery, queryClient]),
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }, [queryClient]),
   );
 
   const markAllMutation = useMutation({
@@ -79,16 +89,21 @@ export default function NotificationsScreen() {
     setBusyId(item.id);
     try {
       await acceptInvite(inviteId);
-      await markNotificationRead(item.id);
-      await invalidateNotificationQueries(queryClient);
       await queryClient.invalidateQueries({ queryKey: ['group'] });
-    } catch (err) {
-      Alert.alert('수락 실패', getErrorMessage(err));
       try {
         await markNotificationRead(item.id);
         await invalidateNotificationQueries(queryClient);
       } catch {
-        /* ignore secondary failure */
+        Alert.alert(
+          '알림',
+          '초대는 처리됐지만 알림 읽음 처리에 실패했어요',
+        );
+      }
+    } catch (err) {
+      Alert.alert('수락 실패', getErrorMessage(err));
+      const status = isAxiosError(err) ? err.response?.status : undefined;
+      if (status === 404) {
+        await markReadAfterInviteHandled(queryClient, item.id);
       }
     } finally {
       setBusyId(null);
@@ -104,16 +119,21 @@ export default function NotificationsScreen() {
     setBusyId(item.id);
     try {
       await rejectInvite(inviteId);
-      await markNotificationRead(item.id);
-      await invalidateNotificationQueries(queryClient);
       await queryClient.invalidateQueries({ queryKey: ['group'] });
-    } catch (err) {
-      Alert.alert('거절 실패', getErrorMessage(err));
       try {
         await markNotificationRead(item.id);
         await invalidateNotificationQueries(queryClient);
       } catch {
-        /* ignore */
+        Alert.alert(
+          '알림',
+          '초대는 처리됐지만 알림 읽음 처리에 실패했어요',
+        );
+      }
+    } catch (err) {
+      Alert.alert('거절 실패', getErrorMessage(err));
+      const status = isAxiosError(err) ? err.response?.status : undefined;
+      if (status === 404) {
+        await markReadAfterInviteHandled(queryClient, item.id);
       }
     } finally {
       setBusyId(null);
