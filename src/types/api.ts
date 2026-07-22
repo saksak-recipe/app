@@ -287,3 +287,7 @@ export type SavedRecipeStatus = {
   saved: boolean;
   id: string | null;
 };
+
+export type OcrReceiptResponse = {
+  ingredients: string[];
+};

@@ -53,6 +53,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           },
         },
       ],
+      [
+        'expo-image-picker',
+        {
+          photosPermission: '영수증 사진을 불러와 식재료를 추가하려면 사진 접근이 필요합니다.',
+          cameraPermission: '영수증을 촬영해 식재료를 추가하려면 카메라 접근이 필요합니다.',
+          microphonePermission: false,
+        },
+      ],
     ],
   };
 
