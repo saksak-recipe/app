@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -17,6 +17,7 @@ import { getErrorMessage } from '@/api/client';
 import { addIngredients } from '@/api/ingredients';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { useReceiptOcr } from '@/hooks/useReceiptOcr';
 import { colors } from '@/theme/colors';
 import { clayShadow } from '@/theme/shadows';
 import type { DataScope } from '@/types/api';
@@ -49,6 +50,16 @@ export default function AddIngredientScreen() {
       .filter((name) => name.length > 0);
   }, [rawInput]);
 
+  const rawInputRef = useRef(rawInput);
+  rawInputRef.current = rawInput;
+
+  const receiptOcr = useReceiptOcr({
+    getCurrentRaw: () => rawInputRef.current,
+    onMerged: (nextRaw) => {
+      setRawInput(nextRaw);
+    },
+  });
+
   const mutation = useMutation({
     mutationFn: (payload: Parameters<typeof addIngredients>[0]) =>
       addIngredients(payload, scope),
@@ -73,6 +84,7 @@ export default function AddIngredientScreen() {
 
   const onSubmit = () => {
     setError(null);
+    receiptOcr.clearMessages();
 
     if (names.length === 0) {
       setError('추가할 식재료를 입력해주세요.');
@@ -116,6 +128,14 @@ export default function AddIngredientScreen() {
             <Text style={styles.hint}>
               여러 개는 쉼표 또는 줄바꿈으로 구분해 한 번에 추가할 수 있어요.
             </Text>
+
+            <Button
+              title="영수증 스캔"
+              variant="secondary"
+              loading={receiptOcr.isPending}
+              disabled={mutation.isPending}
+              onPress={receiptOcr.startScan}
+            />
 
             <TextField
               label="식재료"
@@ -161,11 +181,17 @@ export default function AddIngredientScreen() {
               </View>
             ) : null}
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {receiptOcr.emptyMessage ? (
+              <Text style={styles.hint}>{receiptOcr.emptyMessage}</Text>
+            ) : null}
+
+            {(error ?? receiptOcr.error) ? (
+              <Text style={styles.error}>{error ?? receiptOcr.error}</Text>
+            ) : null}
 
             <Button
               loading={mutation.isPending}
-              disabled={names.length === 0}
+              disabled={names.length === 0 || receiptOcr.isPending}
               onPress={onSubmit}
               title="냉장고에 넣기"
             />
