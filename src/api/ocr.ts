@@ -35,7 +35,8 @@ export async function parseReceiptImage(
     {
       timeout: 60_000,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        // apiClient defaults to application/json; omit so RN/axios set multipart boundary.
+        'Content-Type': undefined as unknown as string,
       },
     },
   );

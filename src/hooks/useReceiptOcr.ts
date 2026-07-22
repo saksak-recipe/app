@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { parseReceiptImage } from '@/api/ocr';
@@ -72,7 +72,7 @@ export function useReceiptOcr({
         fileSize: asset.fileSize,
       });
     },
-    [mutation],
+    [mutation.mutate],
   );
 
   const openSettingsHint = useCallback((message: string) => {
@@ -154,11 +154,7 @@ export function useReceiptOcr({
       { text: '취소', style: 'cancel' as const },
     ];
 
-    if (Platform.OS === 'ios') {
-      Alert.alert('영수증 스캔', '이미지를 선택하세요.', buttons);
-    } else {
-      Alert.alert('영수증 스캔', '이미지를 선택하세요.', buttons);
-    }
+    Alert.alert('영수증 스캔', '이미지를 선택하세요.', buttons);
   }, [
     clearMessages,
     mutation.isPending,
