@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Ingredient } from '@/types/api';
 import { colors } from '@/theme/colors';
 import { radius } from '@/theme/radius';
-import { clayShadowSoft } from '@/theme/shadows';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 
@@ -59,13 +58,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    ...clayShadowSoft,
   },
   pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
   left: { flex: 1, gap: 2 },
-  name: { ...typography.body, fontWeight: '700' },
+  name: { ...typography.body, fontWeight: '600' },
   date: typography.caption,
   badge: {
     borderRadius: radius.pill,

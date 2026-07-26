@@ -54,7 +54,7 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 16,
     gap: 8,
     ...clayShadowSoft,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   difficulty: {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   difficultyText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.accent,
   },
   owned: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark,
   },
   pressed: {

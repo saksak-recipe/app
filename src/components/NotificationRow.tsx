@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   body: {

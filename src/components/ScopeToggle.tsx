@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
   tabText: {
     color: colors.textMuted,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   tabTextActive: {
     color: colors.primaryDark,
-    fontWeight: '800',
+    fontWeight: '600',
   },
 });

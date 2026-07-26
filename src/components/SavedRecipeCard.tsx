@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 import type { SavedRecipeListItem } from '@/types/api';
 
 type SavedRecipeCardProps = {
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 18,
     gap: 10,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   titleRow: {
     flexDirection: 'row',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   deleteButton: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   difficultyText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.accent,
   },
   timeRow: {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark,
   },
   pressed: {

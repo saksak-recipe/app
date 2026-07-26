@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ShoppingItem } from '@/types/api';
 import { colors } from '@/theme/colors';
-import { clayShadowSoft } from '@/theme/shadows';
 
 type ShoppingItemRowProps = {
   item: ShoppingItem;
@@ -70,9 +69,10 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: colors.surface,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    ...clayShadowSoft,
   },
   checkBtn: {
     width: 36,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   nameChecked: {

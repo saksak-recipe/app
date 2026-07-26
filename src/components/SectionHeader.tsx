@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
   action: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
   },
 });
