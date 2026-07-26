@@ -5,13 +5,13 @@ import { colors } from '@/theme/colors';
 export const typography = {
   title: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   } satisfies TextStyle,
   section: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '600',
     color: colors.text,
   } satisfies TextStyle,
   body: {
@@ -21,12 +21,12 @@ export const typography = {
   } satisfies TextStyle,
   caption: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '400',
     color: colors.textMuted,
   } satisfies TextStyle,
   label: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   } satisfies TextStyle,
 } as const;
