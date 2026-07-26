@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ActivityIndicator,
   Pressable,
@@ -31,35 +30,6 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
-  if (variant === 'primary') {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        disabled={isDisabled}
-        style={({ pressed }) => [
-          styles.shadowWrap,
-          pressed && !isDisabled && styles.pressed,
-          isDisabled && styles.disabled,
-          style,
-        ]}
-        {...props}
-      >
-        <LinearGradient
-          colors={[colors.primary, colors.primaryDark]}
-          end={{ x: 0.5, y: 1 }}
-          start={{ x: 0.5, y: 0 }}
-          style={styles.base}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.label}>{title}</Text>
-          )}
-        </LinearGradient>
-      </Pressable>
-    );
-  }
-
   return (
     <Pressable
       accessibilityRole="button"
@@ -76,7 +46,13 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'secondary' || variant === 'ghost' ? colors.primary : colors.danger}
+          color={
+            variant === 'secondary' || variant === 'ghost'
+              ? colors.primary
+              : variant === 'danger'
+                ? colors.danger
+                : '#fff'
+          }
         />
       ) : (
         <Text
@@ -94,17 +70,16 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  shadowWrap: {
-    borderRadius: 20,
-    ...clayShadowSoft,
-  },
   base: {
-    minHeight: 54,
-    borderRadius: 20,
+    minHeight: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,
     overflow: 'hidden',
+  },
+  primary: {
+    backgroundColor: colors.primary,
   },
   secondary: {
     backgroundColor: colors.primarySoft,
@@ -116,7 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   pressed: {
-    opacity: 0.88,
+    opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
   disabled: {
@@ -125,7 +100,7 @@ const styles = StyleSheet.create({
   label: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   labelDark: {
     color: colors.primaryDark,
