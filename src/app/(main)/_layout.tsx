@@ -9,7 +9,7 @@ export default function MainLayout() {
         headerStyle: { backgroundColor: colors.bg },
         headerShadowVisible: false,
         headerTintColor: colors.primaryDark,
-        headerTitleStyle: { fontWeight: '700', color: colors.text },
+        headerTitleStyle: { fontWeight: '600', color: colors.text },
         headerBackTitle: '뒤로',
         contentStyle: { backgroundColor: colors.bg },
       }}
