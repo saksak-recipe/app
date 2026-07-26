@@ -17,7 +17,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 export default function KakaoProfileScreen() {
   const router = useRouter();
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     letterSpacing: -0.5,
   },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 14,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   error: {
     color: colors.danger,

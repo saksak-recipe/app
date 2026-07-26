@@ -16,7 +16,7 @@ import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 type Step = 'request' | 'confirm';
 
@@ -171,13 +171,13 @@ const styles = StyleSheet.create({
   brand: { gap: 6 },
   eyebrow: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.primary,
     letterSpacing: -0.3,
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     letterSpacing: -0.5,
   },
@@ -191,9 +191,9 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 14,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   error: { color: colors.danger, fontSize: 14 },
   footer: { alignItems: 'center' },
-  link: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  link: { color: colors.accent, fontSize: 14, fontWeight: '600' },
 });

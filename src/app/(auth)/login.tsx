@@ -24,7 +24,7 @@ import {
 } from '@/lib/kakao';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 function isKakaoCancelError(error: unknown): boolean {
   if (!error || typeof error !== 'object') {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontSize: 52,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.primary,
     letterSpacing: -1.5,
   },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 14,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   error: {
     color: colors.danger,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   kakaoButton: {
-    minHeight: 54,
+    minHeight: 48,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   kakaoLabel: {
     color: '#191919',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
@@ -321,6 +321,6 @@ const styles = StyleSheet.create({
   link: {
     color: colors.accent,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

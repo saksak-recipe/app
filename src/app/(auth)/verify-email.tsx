@@ -17,7 +17,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 
 const DEFAULT_EXPIRES_IN_SECONDS = 180;
 
@@ -175,13 +175,13 @@ const styles = StyleSheet.create({
   brand: { gap: 6 },
   eyebrow: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.primary,
     letterSpacing: -0.3,
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     letterSpacing: -0.5,
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 14,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   timer: {
     color: colors.textMuted,
@@ -214,5 +214,5 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   footerText: { color: colors.textMuted, fontSize: 14 },
-  link: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  link: { color: colors.accent, fontSize: 14, fontWeight: '600' },
 });
