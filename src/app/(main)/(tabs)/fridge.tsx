@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 14, color: colors.textMuted },
   nickname: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     marginTop: 2,
     letterSpacing: -0.4,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: colors.accentSoft,
   },
-  countText: { fontSize: 13, fontWeight: '700', color: colors.accent },
+  countText: { fontSize: 13, fontWeight: '600', color: colors.accent },
   list: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xl,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
     gap: spacing.md,
   },
-  errorTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
+  errorTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
   errorDesc: {
     fontSize: 14,
     color: colors.textMuted,

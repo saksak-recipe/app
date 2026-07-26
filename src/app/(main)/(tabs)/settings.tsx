@@ -219,11 +219,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     ...clayShadowSoft,
   },
-  title: { fontSize: 22, fontWeight: '800', color: colors.text },
+  title: { fontSize: 22, fontWeight: '700', color: colors.text },
   email: { fontSize: 14, color: colors.textMuted },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   error: { color: colors.danger, fontSize: 14 },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
     color: colors.primaryDark,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     overflow: 'hidden',
   },
 });
