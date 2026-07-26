@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   markAll: {
     color: colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 14,
   },
   list: {

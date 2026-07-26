@@ -40,7 +40,7 @@ export default function RecipeRecommendationsScreen() {
           onPress={() => router.push('/(main)/recipes/saved' as Href)}
           style={{ paddingHorizontal: 4, paddingVertical: 4 }}
         >
-          <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: '700' }}>
+          <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: '600' }}>
             저장
           </Text>
         </Pressable>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   emptyDescription: {

@@ -17,7 +17,7 @@ import { updateIngredient } from '@/api/ingredients';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 import type { DataScope } from '@/types/api';
 
 export default function EditIngredientScreen() {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 14,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   error: { color: colors.danger, fontSize: 14 },
 });

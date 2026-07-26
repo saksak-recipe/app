@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 8,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   emptyDescription: {
     fontSize: 14,
     color: colors.textMuted,

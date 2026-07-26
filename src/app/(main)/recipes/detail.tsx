@@ -24,7 +24,7 @@ import {
 } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { colors } from '@/theme/colors';
-import { clayShadow, clayShadowSoft } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 import type { RecipeIngredient, SavedRecipeSource } from '@/types/api';
 
 function getFirstParam(value: string | string[] | undefined): string | undefined {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   mainImageWrap: {
     borderRadius: 24,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   mainImage: {
     width: '100%',
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   recipeName: {
     flex: 1,
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   saveButton: {
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark,
   },
   saveButtonTextActive: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
   },
   sectionCard: {
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   },
   ingredientAmount: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark,
   },
   stepList: {
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   stepNumberText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.surface,
   },
   stepContent: {
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
   },
   tipLabel: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.accent,
   },
   tipText: {

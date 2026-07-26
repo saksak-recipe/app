@@ -19,7 +19,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useReceiptOcr } from '@/hooks/useReceiptOcr';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 import type { DataScope } from '@/types/api';
 
 const SUGGESTIONS = ['양파', '당근', '계란', '우유', '두부', '김치', '밥', '닭가슴살'];
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 16,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
   hint: {
     fontSize: 14,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 13,
   },
   previewPill: {

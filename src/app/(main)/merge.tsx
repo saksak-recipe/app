@@ -20,7 +20,7 @@ import {
 } from '@/api/ingredients';
 import { Button } from '@/components/Button';
 import { colors } from '@/theme/colors';
-import { clayShadow } from '@/theme/shadows';
+import { clayShadowSoft } from '@/theme/shadows';
 import type { Ingredient, ShoppingItem } from '@/types/api';
 
 type MergeMode = 'copy' | 'move';
@@ -206,13 +206,13 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 20,
     gap: 12,
-    ...clayShadow,
+    ...clayShadowSoft,
   },
-  title: { fontSize: 22, fontWeight: '800', color: colors.text },
+  title: { fontSize: 22, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     marginTop: 8,
   },
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleRowSelected: { backgroundColor: colors.primary },
-  toggleText: { fontSize: 12, fontWeight: '700', color: colors.primaryDark },
+  toggleText: { fontSize: 12, fontWeight: '600', color: colors.primaryDark },
   toggleTextSelected: { color: colors.surface },
   selectRow: {
     flexDirection: 'row',
