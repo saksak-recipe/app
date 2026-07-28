@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,11 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { updateIngredient } from '@/api/ingredients';
+import { queryKeys } from '@/api/queryKeys';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { parseDataScope } from '@/lib/scope';
 import { colors } from '@/theme/colors';
+import { radius } from '@/theme/radius';
 import { clayShadowSoft } from '@/theme/shadows';
-import type { DataScope } from '@/types/api';
 
 export default function EditIngredientScreen() {
   const router = useRouter();
@@ -28,16 +29,23 @@ export default function EditIngredientScreen() {
     name: string;
     purchase_date: string;
     expiration_date?: string;
-    scope?: DataScope;
+    scope?: string;
   }>();
 
-  const scope = (params.scope ?? 'personal') as DataScope;
+  const scope = parseDataScope(params.scope);
   const ingredientId = Number(params.id);
+  const isValidId = Number.isFinite(ingredientId) && ingredientId > 0;
 
   const [name, setName] = useState(params.name ?? '');
   const [purchaseDate, setPurchaseDate] = useState(params.purchase_date ?? '');
   const [expirationDate, setExpirationDate] = useState(params.expiration_date ?? '');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isValidId) {
+      setError('잘못된 식재료입니다.');
+    }
+  }, [isValidId]);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -51,7 +59,9 @@ export default function EditIngredientScreen() {
         scope,
       ),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['ingredients', scope] });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.ingredients.scope(scope),
+      });
       router.back();
     },
     onError: (err) => {
@@ -61,6 +71,11 @@ export default function EditIngredientScreen() {
 
   const onSubmit = () => {
     setError(null);
+
+    if (!isValidId) {
+      setError('잘못된 식재료입니다.');
+      return;
+    }
 
     if (name.trim().length === 0) {
       setError('식재료 이름을 입력해주세요.');
@@ -104,7 +119,12 @@ export default function EditIngredientScreen() {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button loading={mutation.isPending} onPress={onSubmit} title="저장" />
+            <Button
+              disabled={!isValidId}
+              loading={mutation.isPending}
+              onPress={onSubmit}
+              title="저장"
+            />
             <Button
               title="취소"
               variant="ghost"
@@ -123,7 +143,7 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 28,
+    borderRadius: radius.xl,
     padding: 20,
     gap: 14,
     ...clayShadowSoft,

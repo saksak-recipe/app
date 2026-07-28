@@ -3,7 +3,23 @@ import axios, { AxiosError, isAxiosError } from 'axios';
 import { refreshTokens } from '@/api/auth';
 import type { ApiErrorBody, UserInfo } from '@/types/api';
 
-const baseURL = `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/v1`;
+function resolveApiOrigin(): string {
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, '');
+  }
+
+  if (__DEV__) {
+    console.warn(
+      '[api] EXPO_PUBLIC_API_URL이 없습니다. 개발용으로 http://localhost:8000 을 사용합니다. 실기기에서는 .env에 LAN IP를 설정하세요.',
+    );
+    return 'http://localhost:8000';
+  }
+
+  throw new Error('EXPO_PUBLIC_API_URL 환경 변수가 필요합니다.');
+}
+
+const baseURL = `${resolveApiOrigin()}/api/v1`;
 
 export const apiClient = axios.create({
   baseURL,

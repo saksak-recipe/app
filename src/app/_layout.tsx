@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -8,17 +8,10 @@ import {
   setTokensRefreshedHandler,
   setUnauthorizedHandler,
 } from '@/api/client';
+import { queryClient } from '@/api/queryClient';
+import { clearAppSession } from '@/lib/session';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
-});
 
 setTokensRefreshedHandler((access, refresh, user) =>
   useAuthStore.getState().setSession(access, refresh, user),
@@ -30,7 +23,6 @@ function AuthGate({ children }: { children: ReactNode }) {
   const token = useAuthStore((state) => state.token);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const hydrate = useAuthStore((state) => state.hydrate);
-  const clearSession = useAuthStore((state) => state.clearSession);
 
   useEffect(() => {
     void hydrate();
@@ -38,10 +30,10 @@ function AuthGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      void clearSession();
+      void clearAppSession();
     });
     return () => setUnauthorizedHandler(null);
-  }, [clearSession]);
+  }, []);
 
   useEffect(() => {
     if (!isHydrated) {

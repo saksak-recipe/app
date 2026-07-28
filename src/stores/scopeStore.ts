@@ -7,15 +7,21 @@ type ScopeState = {
   hasGroup: boolean;
   setScope: (scope: DataScope) => void;
   setHasGroup: (hasGroup: boolean) => void;
+  reset: () => void;
+};
+
+const initialState = {
+  scope: 'personal' as DataScope,
+  hasGroup: false,
 };
 
 export const useScopeStore = create<ScopeState>((set) => ({
-  scope: 'personal',
-  hasGroup: false,
+  ...initialState,
   setScope: (scope) => set({ scope }),
   setHasGroup: (hasGroup) =>
     set((state) => ({
       hasGroup,
       scope: hasGroup ? state.scope : 'personal',
     })),
+  reset: () => set(initialState),
 }));

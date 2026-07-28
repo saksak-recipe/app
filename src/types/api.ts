@@ -137,7 +137,7 @@ export type UpdateShoppingItemRequest = {
 export type GroupMember = {
   user_id: string;
   nickname: string;
-  role: string;
+  role: 'owner' | 'member';
 };
 
 export type Group = {

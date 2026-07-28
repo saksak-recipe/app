@@ -13,22 +13,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
+import { queryKeys } from '@/api/queryKeys';
 import { getRecipeRecommendations } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { RecipeCard } from '@/components/RecipeCard';
 import { ScopeToggle } from '@/components/ScopeToggle';
-import { useScopeStore } from '@/stores/scopeStore';
+import { useGroupScope } from '@/hooks/useGroupScope';
 import { colors } from '@/theme/colors';
 import type { RecipeRecommendation } from '@/types/api';
-
-const RECIPE_RECOMMENDATIONS_KEY = ['recipes', 'recommendations'] as const;
 
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const scope = useScopeStore((state) => state.scope);
-  const hasGroup = useScopeStore((state) => state.hasGroup);
-  const setScope = useScopeStore((state) => state.setScope);
+  const { scope, hasGroup, setScope } = useGroupScope();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -38,18 +35,16 @@ export default function RecipeRecommendationsScreen() {
           accessibilityRole="button"
           hitSlop={8}
           onPress={() => router.push('/(main)/recipes/saved' as Href)}
-          style={{ paddingHorizontal: 4, paddingVertical: 4 }}
+          style={styles.headerRight}
         >
-          <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: '600' }}>
-            저장
-          </Text>
+          <Text style={styles.headerRightText}>저장</Text>
         </Pressable>
       ),
     });
   }, [navigation, router]);
 
   const query = useQuery({
-    queryKey: [...RECIPE_RECOMMENDATIONS_KEY, scope],
+    queryKey: queryKeys.recipes.recommendations(scope),
     queryFn: () => getRecipeRecommendations(scope),
   });
 
@@ -173,5 +168,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  headerRight: {
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  headerRightText: {
+    color: colors.primaryDark,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

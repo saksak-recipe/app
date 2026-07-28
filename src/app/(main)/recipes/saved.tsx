@@ -13,11 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import {
-  deleteSavedRecipe,
-  listSavedRecipes,
-  SAVED_RECIPES_KEY,
-} from '@/api/recipes';
+import { queryKeys } from '@/api/queryKeys';
+import { deleteSavedRecipe, listSavedRecipes } from '@/api/recipes';
 import { Button } from '@/components/Button';
 import { SavedRecipeCard } from '@/components/SavedRecipeCard';
 import { colors } from '@/theme/colors';
@@ -29,7 +26,7 @@ export default function SavedRecipesScreen() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const savedQuery = useQuery({
-    queryKey: SAVED_RECIPES_KEY,
+    queryKey: queryKeys.recipes.saved,
     queryFn: listSavedRecipes,
   });
 
@@ -39,8 +36,10 @@ export default function SavedRecipesScreen() {
       setDeletingId(id);
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: SAVED_RECIPES_KEY });
-      await queryClient.invalidateQueries({ queryKey: ['recipes', 'saved', 'status'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.recipes.saved });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.recipes.savedStatusAll,
+      });
     },
     onError: (err) => {
       Alert.alert('삭제 실패', getErrorMessage(err));

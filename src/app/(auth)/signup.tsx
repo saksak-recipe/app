@@ -1,5 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
-import { Link, useRouter, type Href } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -11,12 +10,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useMutation } from '@tanstack/react-query';
+
 import { signup } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { verifyEmailHref } from '@/lib/navigation';
+import { authStyles } from '@/theme/authStyles';
 import { colors } from '@/theme/colors';
-import { clayShadowSoft } from '@/theme/shadows';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -30,13 +32,12 @@ export default function SignupScreen() {
   const mutation = useMutation({
     mutationFn: signup,
     onSuccess: async (data) => {
-      router.replace({
-        pathname: '/(auth)/verify-email',
-        params: {
+      router.replace(
+        verifyEmailHref({
           email: data.email,
-          expiresIn: String(data.expires_in_seconds),
-        },
-      } as unknown as Href);
+          expiresIn: data.expires_in_seconds,
+        }),
+      );
     },
     onError: (err) => {
       setError(getErrorMessage(err, '회원가입에 실패했습니다.'));
@@ -51,23 +52,23 @@ export default function SignupScreen() {
     password === checkedPassword;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.blobTop} pointerEvents="none" />
+    <SafeAreaView style={authStyles.safe}>
+      <View style={authStyles.blobTop} pointerEvents="none" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}
+        style={authStyles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[authStyles.content, styles.content]}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.brand}>
-            <Text style={styles.eyebrow}>삭삭</Text>
-            <Text style={styles.title}>회원가입</Text>
-            <Text style={styles.subtitle}>삭삭과 함께 냉장고를 정리해보세요</Text>
+          <View style={authStyles.brand}>
+            <Text style={authStyles.eyebrow}>삭삭</Text>
+            <Text style={authStyles.title}>회원가입</Text>
+            <Text style={authStyles.subtitle}>삭삭과 함께 냉장고를 정리해보세요</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={authStyles.card}>
             <TextField
               autoCapitalize="none"
               autoCorrect={false}
@@ -108,10 +109,10 @@ export default function SignupScreen() {
             {password.length > 0 &&
             checkedPassword.length > 0 &&
             password !== checkedPassword ? (
-              <Text style={styles.error}>비밀번호가 일치하지 않습니다.</Text>
+              <Text style={authStyles.error}>비밀번호가 일치하지 않습니다.</Text>
             ) : null}
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={authStyles.error}>{error}</Text> : null}
 
             <Button
               loading={mutation.isPending}
@@ -142,60 +143,10 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  flex: {
-    flex: 1,
-  },
-  blobTop: {
-    position: 'absolute',
-    top: -60,
-    left: -40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: colors.primarySoft,
-    opacity: 0.8,
-  },
   content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
+    justifyContent: 'flex-start',
     paddingTop: 36,
-    paddingBottom: 32,
     gap: 24,
-  },
-  brand: {
-    gap: 6,
-  },
-  eyebrow: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: -0.3,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 21,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 28,
-    padding: 20,
-    gap: 14,
-    ...clayShadowSoft,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',

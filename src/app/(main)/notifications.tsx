@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { acceptInvite, rejectInvite } from '@/api/groups';
@@ -20,16 +21,20 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/api/notifications';
+import { queryKeys } from '@/api/queryKeys';
 import { NotificationRow } from '@/components/NotificationRow';
-import type { Notification } from '@/types/api';
+import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
+import type { Notification } from '@/types/api';
 
 async function invalidateNotificationQueries(
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-    queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.notifications.unreadCount,
+    }),
   ]);
 }
 
@@ -48,16 +53,19 @@ async function deleteAfterInviteHandled(
 export default function NotificationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const setHasGroup = useScopeStore((state) => state.setHasGroup);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const listQuery = useQuery({
-    queryKey: ['notifications'],
+    queryKey: queryKeys.notifications.all,
     queryFn: listNotifications,
   });
 
   useFocusEffect(
     useCallback(() => {
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.all,
+      });
     }, [queryClient]),
   );
 
@@ -90,7 +98,13 @@ export default function NotificationsScreen() {
     setBusyId(item.id);
     try {
       await acceptInvite(inviteId);
-      await queryClient.invalidateQueries({ queryKey: ['group'] });
+      setHasGroup(true);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.group.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.ingredients.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.shopping.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all }),
+      ]);
       try {
         await deleteNotification(item.id);
         await invalidateNotificationQueries(queryClient);
@@ -120,7 +134,7 @@ export default function NotificationsScreen() {
     setBusyId(item.id);
     try {
       await rejectInvite(inviteId);
-      await queryClient.invalidateQueries({ queryKey: ['group'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.group.all });
       try {
         await deleteNotification(item.id);
         await invalidateNotificationQueries(queryClient);
@@ -142,7 +156,7 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom']} style={styles.container}>
       <View style={styles.toolbar}>
         <Pressable
           onPress={() => markAllMutation.mutate()}
@@ -174,7 +188,7 @@ export default function NotificationsScreen() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

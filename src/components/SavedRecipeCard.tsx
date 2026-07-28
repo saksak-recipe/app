@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
-import { clayShadowSoft } from '@/theme/shadows';
+import { radius } from '@/theme/radius';
+import { recipeCardStyles } from '@/theme/recipeCardStyles';
 import type { SavedRecipeListItem } from '@/types/api';
 
 type SavedRecipeCardProps = {
@@ -23,10 +24,10 @@ export function SavedRecipeCard({
       accessibilityLabel={`${recipe.recipe_name} 저장 레시피 보기`}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [recipeCardStyles.card, pressed && recipeCardStyles.pressed]}
     >
-      <View style={styles.titleRow}>
-        <Text numberOfLines={1} style={styles.name}>
+      <View style={recipeCardStyles.titleRow}>
+        <Text numberOfLines={1} style={recipeCardStyles.name}>
           {recipe.recipe_name}
         </Text>
         <Pressable
@@ -49,14 +50,14 @@ export function SavedRecipeCard({
       </View>
       <View style={styles.metaRow}>
         {recipe.recipe_difficulty ? (
-          <View style={styles.difficulty}>
-            <Text style={styles.difficultyText}>{recipe.recipe_difficulty}</Text>
+          <View style={recipeCardStyles.difficulty}>
+            <Text style={recipeCardStyles.difficultyText}>{recipe.recipe_difficulty}</Text>
           </View>
         ) : null}
         {recipe.time ? (
-          <View style={styles.timeRow}>
+          <View style={recipeCardStyles.timeRow}>
             <Ionicons color={colors.primary} name="time-outline" size={16} />
-            <Text style={styles.time}>{recipe.time}</Text>
+            <Text style={recipeCardStyles.time}>{recipe.time}</Text>
           </View>
         ) : null}
       </View>
@@ -65,28 +66,10 @@ export function SavedRecipeCard({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 18,
-    gap: 10,
-    ...clayShadowSoft,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  name: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-  },
   deleteButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.dangerSoft,
@@ -102,30 +85,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     flexWrap: 'wrap',
-  },
-  difficulty: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: colors.accentSoft,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.accent,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  time: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
   },
 });

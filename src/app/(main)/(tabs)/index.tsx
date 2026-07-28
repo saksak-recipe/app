@@ -12,33 +12,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { getIngredients } from '@/api/ingredients';
+import { queryKeys } from '@/api/queryKeys';
 import { getRecipeRecommendations } from '@/api/recipes';
 import { EmptyState } from '@/components/EmptyState';
 import { ExpiryIngredientRow } from '@/components/ExpiryIngredientRow';
 import { RecipeCard } from '@/components/RecipeCard';
+import { ScopeToggle } from '@/components/ScopeToggle';
 import { SectionHeader } from '@/components/SectionHeader';
+import { useGroupScope } from '@/hooks/useGroupScope';
+import { toDateOnly } from '@/lib/dates';
 import { selectExpiringIngredients } from '@/lib/ingredients';
+import { editIngredientHref } from '@/lib/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import type { Ingredient, RecipeRecommendation } from '@/types/api';
 
-const INGREDIENTS_KEY = ['ingredients', 'personal'] as const;
-const RECIPES_KEY = ['recipes', 'recommendations', 'personal'] as const;
-
 export default function HomeScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const { scope, hasGroup, setScope, isGroupReady } = useGroupScope();
 
   const ingredientsQuery = useQuery({
-    queryKey: INGREDIENTS_KEY,
-    queryFn: () => getIngredients('personal'),
+    queryKey: queryKeys.ingredients.scope(scope),
+    queryFn: () => getIngredients(scope),
+    enabled: isGroupReady,
   });
 
   const recipesQuery = useQuery({
-    queryKey: RECIPES_KEY,
-    queryFn: () => getRecipeRecommendations('personal'),
+    queryKey: queryKeys.recipes.recommendations(scope),
+    queryFn: () => getRecipeRecommendations(scope),
+    enabled: isGroupReady,
   });
 
   const ingredients = ingredientsQuery.data ?? [];
@@ -54,16 +59,15 @@ export default function HomeScreen() {
   };
 
   const onEditIngredient = (item: Ingredient) => {
-    router.push({
-      pathname: '/(main)/edit-ingredient',
-      params: {
-        id: String(item.id),
+    router.push(
+      editIngredientHref({
+        id: item.id,
         name: item.ingredient_name,
-        purchase_date: item.purchase_date.slice(0, 10),
-        expiration_date: item.expiration_date?.slice(0, 10) ?? '',
-        scope: 'personal',
-      },
-    } as unknown as Href);
+        purchaseDate: toDateOnly(item.purchase_date),
+        expirationDate: toDateOnly(item.expiration_date),
+        scope,
+      }),
+    );
   };
 
   const onRecipePress = (recipe: RecipeRecommendation) => {
@@ -73,6 +77,13 @@ export default function HomeScreen() {
         board_name: recipe.board_name,
         author_name: recipe.author_name,
       },
+    });
+  };
+
+  const onAddIngredient = () => {
+    router.push({
+      pathname: '/(main)/add',
+      params: { scope },
     });
   };
 
@@ -100,6 +111,9 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <Text style={styles.greeting}>안녕하세요</Text>
             <Text style={styles.nickname}>{user?.nickname ?? '회원'}님</Text>
+            {hasGroup ? (
+              <ScopeToggle scope={scope} onChange={setScope} />
+            ) : null}
           </View>
 
           <View style={styles.section}>
@@ -122,12 +136,7 @@ export default function HomeScreen() {
                 title="냉장고가 비어 있어요"
                 description="식재료를 추가하면 유통기한 임박 알림을 볼 수 있어요."
                 actionLabel="식재료 추가"
-                onAction={() =>
-                  router.push({
-                    pathname: '/(main)/add',
-                    params: { scope: 'personal' },
-                  })
-                }
+                onAction={onAddIngredient}
               />
             ) : expiring.length === 0 ? (
               <EmptyState
@@ -170,12 +179,7 @@ export default function HomeScreen() {
                 title="추천 레시피가 없어요"
                 description="식재료를 추가하면 맞춤 레시피를 추천해 드려요."
                 actionLabel="식재료 추가"
-                onAction={() =>
-                  router.push({
-                    pathname: '/(main)/add',
-                    params: { scope: 'personal' },
-                  })
-                }
+                onAction={onAddIngredient}
               />
             ) : (
               <View style={styles.listGap}>
@@ -206,7 +210,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   greeting: typography.caption,
   nickname: typography.title,

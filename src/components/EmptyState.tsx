@@ -13,6 +13,7 @@ type EmptyStateProps = {
   icon: ComponentProps<typeof Ionicons>['name'];
   title: string;
   description: string;
+  hint?: string;
   actionLabel?: string;
   onAction?: () => void;
 };
@@ -21,6 +22,7 @@ export function EmptyState({
   icon,
   title,
   description,
+  hint,
   actionLabel,
   onAction,
 }: EmptyStateProps) {
@@ -31,6 +33,11 @@ export function EmptyState({
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
+      {hint ? (
+        <View style={styles.hintPill}>
+          <Text style={styles.hintText}>{hint}</Text>
+        </View>
+      ) : null}
       {actionLabel && onAction ? (
         <Button title={actionLabel} onPress={onAction} variant="secondary" style={styles.button} />
       ) : null}
@@ -64,6 +71,18 @@ const styles = StyleSheet.create({
     ...typography.caption,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  hintPill: {
+    marginTop: spacing.xs,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentSoft,
+  },
+  hintText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.accent,
   },
   button: {
     marginTop: spacing.sm,

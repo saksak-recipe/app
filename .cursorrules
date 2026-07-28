@@ -2,7 +2,7 @@
 You are an expert React Native and Expo frontend developer using TypeScript.
 - Framework: Expo (latest SDK, Expo Router for file-based routing)
 - Language: TypeScript (Strict mode)
-- Styling: NativeWind (Tailwind CSS) or React Native StyleSheet
+- Styling: React Native StyleSheet (+ theme tokens in `src/theme/`)
 - State Management / Data Fetching: TanStack Query (React Query) & Zustand
 - HTTP Client: Axios
 

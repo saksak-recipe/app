@@ -17,7 +17,6 @@ import {
   acceptInvite,
   createGroup,
   dissolveGroup,
-  getMyGroup,
   inviteByNickname,
   joinByCode,
   kickMember,
@@ -27,10 +26,11 @@ import {
   rotateInviteCode,
   updateMyGroup,
 } from '@/api/groups';
+import { queryKeys } from '@/api/queryKeys';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { useGroupScope } from '@/hooks/useGroupScope';
 import { useAuthStore } from '@/stores/authStore';
-import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
 import { spacing } from '@/theme/spacing';
@@ -39,37 +39,30 @@ export default function GroupScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const setHasGroup = useScopeStore((state) => state.setHasGroup);
+  const { setHasGroup, groupQuery } = useGroupScope();
 
   const [groupName, setGroupName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [inviteNickname, setInviteNickname] = useState('');
   const [renameValue, setRenameValue] = useState('');
 
-  const groupQuery = useQuery({
-    queryKey: ['group', 'me'],
-    queryFn: getMyGroup,
-    retry: false,
-  });
-
   const invitesQuery = useQuery({
-    queryKey: ['group', 'invites'],
+    queryKey: queryKeys.group.invites,
     queryFn: listMyInvites,
     enabled: !groupQuery.isSuccess,
   });
 
   useEffect(() => {
-    setHasGroup(groupQuery.isSuccess);
     if (groupQuery.data) {
       setRenameValue(groupQuery.data.name);
     }
-  }, [groupQuery.isSuccess, groupQuery.data, setHasGroup]);
+  }, [groupQuery.data]);
 
   const invalidateGroup = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['group'] });
-    await queryClient.invalidateQueries({ queryKey: ['ingredients'] });
-    await queryClient.invalidateQueries({ queryKey: ['shopping'] });
-    await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.group.all });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.ingredients.all });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.shopping.all });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all });
   };
 
   const createMutation = useMutation({
@@ -155,7 +148,7 @@ export default function GroupScreen() {
   const rejectMutation = useMutation({
     mutationFn: rejectInvite,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['group', 'invites'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.group.invites });
     },
     onError: (err) => Alert.alert('거절 실패', getErrorMessage(err)),
   });

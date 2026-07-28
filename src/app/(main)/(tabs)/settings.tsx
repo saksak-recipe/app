@@ -12,9 +12,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { logout as logoutApi } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
+import { queryKeys } from '@/api/queryKeys';
 import { deleteMe, getMe, updateMe, updatePassword } from '@/api/users';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { clearAppSession } from '@/lib/session';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
@@ -24,7 +26,6 @@ export default function SettingsScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
-  const clearSession = useAuthStore((state) => state.clearSession);
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -33,7 +34,7 @@ export default function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const profileQuery = useQuery({
-    queryKey: ['users', 'me'],
+    queryKey: queryKeys.users.me,
     queryFn: getMe,
   });
 
@@ -75,7 +76,7 @@ export default function SettingsScreen() {
   const deleteMutation = useMutation({
     mutationFn: deleteMe,
     onSuccess: async () => {
-      await clearSession();
+      await clearAppSession();
       router.replace('/(auth)/login');
     },
     onError: (err) => Alert.alert('탈퇴 실패', getErrorMessage(err)),
@@ -97,7 +98,7 @@ export default function SettingsScreen() {
             } catch {
               // 서버 실패해도 로컬 세션은 지운다
             }
-            await clearSession();
+            await clearAppSession();
             router.replace('/(auth)/login');
           })();
         },

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter, type Href } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,57 +13,44 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import { getMyGroup } from '@/api/groups';
 import {
   deleteAllIngredients,
   deleteIngredient,
   getIngredients,
 } from '@/api/ingredients';
+import { queryKeys } from '@/api/queryKeys';
 import { Button } from '@/components/Button';
-import { EmptyFridge } from '@/components/EmptyFridge';
+import { EmptyState } from '@/components/EmptyState';
 import { IngredientItem } from '@/components/IngredientItem';
 import { ScopeToggle } from '@/components/ScopeToggle';
+import { useGroupScope } from '@/hooks/useGroupScope';
+import { toDateOnly } from '@/lib/dates';
+import { editIngredientHref } from '@/lib/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { useScopeStore } from '@/stores/scopeStore';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import type { Ingredient } from '@/types/api';
-
-function ingredientsKey(scope: string) {
-  return ['ingredients', scope] as const;
-}
 
 export default function FridgeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const scope = useScopeStore((state) => state.scope);
-  const hasGroup = useScopeStore((state) => state.hasGroup);
-  const setScope = useScopeStore((state) => state.setScope);
-  const setHasGroup = useScopeStore((state) => state.setHasGroup);
+  const { scope, hasGroup, setScope, groupQuery, isGroupReady } = useGroupScope();
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const groupQuery = useQuery({
-    queryKey: ['group', 'me'],
-    queryFn: getMyGroup,
-    retry: false,
-  });
-
-  useEffect(() => {
-    setHasGroup(groupQuery.isSuccess);
-  }, [groupQuery.isSuccess, setHasGroup]);
-
   const ingredientsQuery = useQuery({
-    queryKey: ingredientsKey(scope),
+    queryKey: queryKeys.ingredients.scope(scope),
     queryFn: () => getIngredients(scope),
-    enabled: scope === 'personal' || groupQuery.isSuccess,
+    enabled: isGroupReady,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteIngredient(id, scope),
     onMutate: (id) => setDeletingId(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ingredientsKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.ingredients.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('삭제 실패', getErrorMessage(err));
@@ -74,7 +61,9 @@ export default function FridgeScreen() {
   const deleteAllMutation = useMutation({
     mutationFn: () => deleteAllIngredients(scope),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ingredientsKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.ingredients.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('전체 삭제 실패', getErrorMessage(err));
@@ -93,16 +82,15 @@ export default function FridgeScreen() {
   };
 
   const onEdit = (item: Ingredient) => {
-    router.push({
-      pathname: '/(main)/edit-ingredient',
-      params: {
-        id: String(item.id),
+    router.push(
+      editIngredientHref({
+        id: item.id,
         name: item.ingredient_name,
-        purchase_date: item.purchase_date.slice(0, 10),
-        expiration_date: item.expiration_date?.slice(0, 10) ?? '',
+        purchaseDate: toDateOnly(item.purchase_date),
+        expirationDate: toDateOnly(item.expiration_date),
         scope,
-      },
-    } as unknown as Href);
+      }),
+    );
   };
 
   const items = ingredientsQuery.data ?? [];
@@ -126,7 +114,7 @@ export default function FridgeScreen() {
         ) : null}
       </View>
 
-      {scope === 'group' && groupQuery.isError ? (
+      {scope === 'group' && groupQuery.isError && !groupQuery.isSuccess ? (
         <View style={styles.center}>
           <Text style={styles.errorTitle}>가족 냉장고를 불러올 수 없어요</Text>
           <Text style={styles.errorDesc}>
@@ -154,7 +142,14 @@ export default function FridgeScreen() {
           contentContainerStyle={styles.list}
           data={items}
           keyExtractor={(item) => String(item.id)}
-          ListEmptyComponent={<EmptyFridge />}
+          ListEmptyComponent={
+            <EmptyState
+              icon="snow-outline"
+              title="냉장고가 비어 있어요"
+              description="식재료를 추가해 냉장고를 채워보세요."
+              hint="아래에서 추가해 보세요"
+            />
+          }
           refreshControl={
             <RefreshControl
               refreshing={ingredientsQuery.isRefetching}

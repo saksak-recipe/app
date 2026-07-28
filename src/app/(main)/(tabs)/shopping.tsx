@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
-import { getMyGroup } from '@/api/groups';
+import { queryKeys } from '@/api/queryKeys';
 import {
   addShoppingItems,
   deleteAllShoppingItems,
@@ -20,51 +20,37 @@ import {
   getShoppingItems,
   shoppingItemToIngredient,
   updateShoppingItem,
-} from '@/api/ingredients';
+} from '@/api/shopping';
 import { Button } from '@/components/Button';
 import { ScopeToggle } from '@/components/ScopeToggle';
 import { ShoppingItemRow } from '@/components/ShoppingItemRow';
 import { TextField } from '@/components/TextField';
-import { useScopeStore } from '@/stores/scopeStore';
+import { useGroupScope } from '@/hooks/useGroupScope';
+import { parseNameList } from '@/lib/receiptOcr';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 
-function shoppingKey(scope: string) {
-  return ['shopping', scope] as const;
-}
-
 export default function ShoppingScreen() {
   const queryClient = useQueryClient();
-  const scope = useScopeStore((state) => state.scope);
-  const hasGroup = useScopeStore((state) => state.hasGroup);
-  const setScope = useScopeStore((state) => state.setScope);
-  const setHasGroup = useScopeStore((state) => state.setHasGroup);
+  const { scope, hasGroup, setScope, groupQuery, isGroupReady } = useGroupScope();
 
   const [input, setInput] = useState('');
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const groupQuery = useQuery({
-    queryKey: ['group', 'me'],
-    queryFn: getMyGroup,
-    retry: false,
-  });
-
-  useEffect(() => {
-    setHasGroup(groupQuery.isSuccess);
-  }, [groupQuery.isSuccess, setHasGroup]);
-
   const shoppingQuery = useQuery({
-    queryKey: shoppingKey(scope),
+    queryKey: queryKeys.shopping.scope(scope),
     queryFn: () => getShoppingItems(scope),
-    enabled: scope === 'personal' || groupQuery.isSuccess,
+    enabled: isGroupReady,
   });
 
   const addMutation = useMutation({
     mutationFn: (names: string[]) => addShoppingItems({ names }, scope),
     onSuccess: async () => {
       setInput('');
-      await queryClient.invalidateQueries({ queryKey: shoppingKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.shopping.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('추가 실패', getErrorMessage(err));
@@ -76,7 +62,9 @@ export default function ShoppingScreen() {
       updateShoppingItem(id, { is_checked: checked }, scope),
     onMutate: ({ id }) => setTogglingId(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: shoppingKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.shopping.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('변경 실패', getErrorMessage(err));
@@ -88,7 +76,9 @@ export default function ShoppingScreen() {
     mutationFn: (id: number) => deleteShoppingItem(id, scope),
     onMutate: (id) => setDeletingId(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: shoppingKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.shopping.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('삭제 실패', getErrorMessage(err));
@@ -100,8 +90,12 @@ export default function ShoppingScreen() {
     mutationFn: (id: number) => shoppingItemToIngredient(id, scope),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: shoppingKey(scope) }),
-        queryClient.invalidateQueries({ queryKey: ['ingredients', scope] }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shopping.scope(scope),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.ingredients.scope(scope),
+        }),
       ]);
     },
     onError: (err) => {
@@ -112,7 +106,9 @@ export default function ShoppingScreen() {
   const deleteAllMutation = useMutation({
     mutationFn: () => deleteAllShoppingItems(scope),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: shoppingKey(scope) });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.shopping.scope(scope),
+      });
     },
     onError: (err) => {
       Alert.alert('전체 삭제 실패', getErrorMessage(err));
@@ -120,10 +116,7 @@ export default function ShoppingScreen() {
   });
 
   const onAdd = () => {
-    const names = input
-      .split(/[,\n]/)
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
+    const names = parseNameList(input);
 
     if (names.length === 0) {
       Alert.alert('입력 필요', '추가할 항목을 입력해주세요.');
@@ -160,7 +153,7 @@ export default function ShoppingScreen() {
         </View>
       </View>
 
-      {scope === 'group' && groupQuery.isError ? (
+      {scope === 'group' && groupQuery.isError && !groupQuery.isSuccess ? (
         <View style={styles.center}>
           <Text style={styles.errorTitle}>가족 장보기를 불러올 수 없어요</Text>
         </View>

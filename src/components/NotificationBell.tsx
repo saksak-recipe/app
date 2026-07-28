@@ -4,12 +4,13 @@ import { type Href, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getUnreadCount } from '@/api/notifications';
+import { queryKeys } from '@/api/queryKeys';
 import { colors } from '@/theme/colors';
 
 export function NotificationBell() {
   const router = useRouter();
   const { data } = useQuery({
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: queryKeys.notifications.unreadCount,
     queryFn: getUnreadCount,
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,

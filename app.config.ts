@@ -1,6 +1,12 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
-const kakaoAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY ?? '';
+const kakaoAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY?.trim() ?? '';
+
+if (!kakaoAppKey) {
+  console.warn(
+    '[config] EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY가 비어 있습니다. 카카오 로그인이 동작하지 않을 수 있습니다.',
+  );
+}
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const expoConfig: ExpoConfig = {
@@ -71,7 +77,25 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
   };
 
-  // Expo runtime still reads this; typings lag behind.
-  (expoConfig as ExpoConfig & { newArchEnabled?: boolean }).newArchEnabled = true;
+  // Expo runtime still reads these; typings lag behind.
+  (expoConfig as ExpoConfig & {
+    newArchEnabled?: boolean;
+    splash?: {
+      image: string;
+      resizeMode: 'contain' | 'cover';
+      backgroundColor: string;
+    };
+  }).newArchEnabled = true;
+  (expoConfig as ExpoConfig & {
+    splash?: {
+      image: string;
+      resizeMode: 'contain' | 'cover';
+      backgroundColor: string;
+    };
+  }).splash = {
+    image: './assets/splash-icon.png',
+    resizeMode: 'contain',
+    backgroundColor: '#ECFDF5',
+  };
   return expoConfig;
 };

@@ -23,6 +23,7 @@ import {
   isKakaoNativeAvailable,
 } from '@/lib/kakao';
 import { useAuthStore } from '@/stores/authStore';
+import { useKakaoSignupStore } from '@/stores/kakaoSignupStore';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
 
@@ -86,10 +87,8 @@ export default function LoginScreen() {
     },
     onSuccess: async (data) => {
       if (data.status === 'needs_profile') {
-        router.push({
-          pathname: '/(auth)/kakao-profile',
-          params: { signup_token: data.signup_token },
-        });
+        useKakaoSignupStore.getState().setSignupToken(data.signup_token);
+        router.push('/(auth)/kakao-profile');
         return;
       }
       await setSession(data.access_token, data.refresh_token, data.info);

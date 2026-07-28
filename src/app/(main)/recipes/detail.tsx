@@ -20,8 +20,8 @@ import {
   getSavedRecipe,
   getSavedRecipeStatus,
   saveRecipe,
-  SAVED_RECIPES_KEY,
 } from '@/api/recipes';
+import { queryKeys } from '@/api/queryKeys';
 import { Button } from '@/components/Button';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
@@ -37,10 +37,6 @@ function detailErrorMessage(error: unknown): string {
   }
 
   return '레시피를 불러오지 못했어요. 다시 시도해 주세요';
-}
-
-function statusKey(source: SavedRecipeSource, sourceId: string) {
-  return ['recipes', 'saved', 'status', source, sourceId] as const;
 }
 
 type DisplayRecipe = {
@@ -80,13 +76,23 @@ export default function RecipeDetailScreen() {
   const isSavedView = source === 'saved';
 
   const mangaeQuery = useQuery({
-    queryKey: ['recipes', 'detail', boardName, authorName],
-    queryFn: () => getRecipeDetail(boardName!, authorName!),
+    queryKey: queryKeys.recipes.detail(boardName ?? '', authorName ?? ''),
+    queryFn: () => {
+      if (!boardName || !authorName) {
+        throw new Error('레시피 정보가 없습니다.');
+      }
+      return getRecipeDetail(boardName, authorName);
+    },
     enabled: !isSavedView && Boolean(boardName && authorName),
   });
   const savedQuery = useQuery({
-    queryKey: ['recipes', 'saved', savedId],
-    queryFn: () => getSavedRecipe(savedId!),
+    queryKey: queryKeys.recipes.savedDetail(savedId ?? ''),
+    queryFn: () => {
+      if (!savedId) {
+        throw new Error('저장된 레시피 정보가 없습니다.');
+      }
+      return getSavedRecipe(savedId);
+    },
     enabled: isSavedView && Boolean(savedId),
   });
 
@@ -102,9 +108,14 @@ export default function RecipeDetailScreen() {
   const statusQuery = useQuery({
     queryKey:
       saveSource && saveSourceId
-        ? statusKey(saveSource, saveSourceId)
-        : ['recipes', 'saved', 'status', 'idle'],
-    queryFn: () => getSavedRecipeStatus(saveSource!, saveSourceId!),
+        ? queryKeys.recipes.savedStatus(saveSource, saveSourceId)
+        : queryKeys.recipes.savedStatus('idle', 'idle'),
+    queryFn: () => {
+      if (!saveSource || !saveSourceId) {
+        throw new Error('저장 상태 정보가 없습니다.');
+      }
+      return getSavedRecipeStatus(saveSource, saveSourceId);
+    },
     enabled: Boolean(saveSource && saveSourceId) && !isSavedView,
   });
 
@@ -119,17 +130,20 @@ export default function RecipeDetailScreen() {
     mutationFn: saveRecipe,
     onSuccess: async (data) => {
       if (saveSource && saveSourceId) {
-        queryClient.setQueryData(statusKey(saveSource, saveSourceId), {
-          saved: true,
-          id: data.id,
-        });
+        queryClient.setQueryData(
+          queryKeys.recipes.savedStatus(saveSource, saveSourceId),
+          {
+            saved: true,
+            id: data.id,
+          },
+        );
       }
-      await queryClient.invalidateQueries({ queryKey: SAVED_RECIPES_KEY });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.recipes.saved });
     },
     onError: async (err) => {
       if (isAxiosError(err) && err.response?.status === 409 && saveSource && saveSourceId) {
         await queryClient.invalidateQueries({
-          queryKey: statusKey(saveSource, saveSourceId),
+          queryKey: queryKeys.recipes.savedStatus(saveSource, saveSourceId),
         });
         return;
       }
@@ -141,14 +155,19 @@ export default function RecipeDetailScreen() {
     mutationFn: deleteSavedRecipe,
     onSuccess: async () => {
       if (saveSource && saveSourceId) {
-        queryClient.setQueryData(statusKey(saveSource, saveSourceId), {
-          saved: false,
-          id: null,
-        });
+        queryClient.setQueryData(
+          queryKeys.recipes.savedStatus(saveSource, saveSourceId),
+          {
+            saved: false,
+            id: null,
+          },
+        );
       }
-      await queryClient.invalidateQueries({ queryKey: SAVED_RECIPES_KEY });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.recipes.saved });
       if (savedId) {
-        queryClient.removeQueries({ queryKey: ['recipes', 'saved', savedId] });
+        queryClient.removeQueries({
+          queryKey: queryKeys.recipes.savedDetail(savedId),
+        });
       }
       if (isSavedView) {
         router.back();

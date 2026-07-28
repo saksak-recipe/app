@@ -14,10 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { mergePersonalIntoGroup } from '@/api/groups';
-import {
-  getIngredients,
-  getShoppingItems,
-} from '@/api/ingredients';
+import { getIngredients } from '@/api/ingredients';
+import { queryKeys } from '@/api/queryKeys';
+import { getShoppingItems } from '@/api/shopping';
 import { Button } from '@/components/Button';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
@@ -71,12 +70,12 @@ export default function MergeScreen() {
   const [selectedShopping, setSelectedShopping] = useState<number[]>([]);
 
   const ingredientsQuery = useQuery({
-    queryKey: ['ingredients', 'personal'],
+    queryKey: queryKeys.ingredients.scope('personal'),
     queryFn: () => getIngredients('personal'),
   });
 
   const shoppingQuery = useQuery({
-    queryKey: ['shopping', 'personal'],
+    queryKey: queryKeys.shopping.scope('personal'),
     queryFn: () => getShoppingItems('personal'),
   });
 
@@ -89,9 +88,9 @@ export default function MergeScreen() {
       }),
     onSuccess: async (result) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
-        queryClient.invalidateQueries({ queryKey: ['shopping'] }),
-        queryClient.invalidateQueries({ queryKey: ['group'] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.ingredients.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.shopping.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.group.all }),
       ]);
 
       const created =

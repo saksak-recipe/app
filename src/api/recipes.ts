@@ -30,8 +30,6 @@ export async function getRecipeDetail(
   return data;
 }
 
-export const SAVED_RECIPES_KEY = ['recipes', 'saved'] as const;
-
 export async function listSavedRecipes(): Promise<SavedRecipeListItem[]> {
   const { data } = await apiClient.get<SavedRecipeListItem[]>('/recipes/saved');
   return data;

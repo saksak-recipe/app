@@ -23,8 +23,26 @@ type AuthState = {
   clearSession: () => Promise<void>;
 };
 
-export async function getRefreshToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(REFRESH_KEY);
+function parseStoredUser(userJson: string | null): UserInfo | null {
+  if (!userJson) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(userJson);
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      typeof (parsed as UserInfo).id !== 'string' ||
+      typeof (parsed as UserInfo).email !== 'string' ||
+      typeof (parsed as UserInfo).nickname !== 'string'
+    ) {
+      return null;
+    }
+    return parsed as UserInfo;
+  } catch {
+    return null;
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -41,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         SecureStore.getItemAsync(USER_KEY),
       ]);
 
-      const user = userJson ? (JSON.parse(userJson) as UserInfo) : null;
+      const user = parseStoredUser(userJson);
 
       if (token && refreshToken && user) {
         setAuthToken(token);

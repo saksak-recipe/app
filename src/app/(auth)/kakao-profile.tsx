@@ -1,11 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -15,17 +14,16 @@ import { completeKakaoSignup } from '@/api/auth';
 import { getErrorMessage } from '@/api/client';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { verifyEmailHref } from '@/lib/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme/colors';
-import { clayShadowSoft } from '@/theme/shadows';
+import { useKakaoSignupStore } from '@/stores/kakaoSignupStore';
+import { authStyles } from '@/theme/authStyles';
 
 export default function KakaoProfileScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ signup_token?: string }>();
   const setSession = useAuthStore((state) => state.setSession);
-
-  const signupToken =
-    typeof params.signup_token === 'string' ? params.signup_token : '';
+  const signupToken = useKakaoSignupStore((state) => state.signupToken);
+  const clearSignupToken = useKakaoSignupStore((state) => state.clearSignupToken);
 
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
@@ -40,15 +38,15 @@ export default function KakaoProfileScreen() {
   const mutation = useMutation({
     mutationFn: completeKakaoSignup,
     onSuccess: async (data) => {
+      clearSignupToken();
       if (data.status === 'needs_email_verification') {
-        router.replace({
-          pathname: '/(auth)/verify-email',
-          params: {
+        router.replace(
+          verifyEmailHref({
             email: data.email,
-            expiresIn: String(data.expires_in_seconds),
+            expiresIn: data.expires_in_seconds,
             source: 'kakao',
-          },
-        } as unknown as Href);
+          }),
+        );
         return;
       }
 
@@ -61,7 +59,7 @@ export default function KakaoProfileScreen() {
   });
 
   const canSubmit =
-    signupToken.length > 0 &&
+    !!signupToken &&
     email.trim().length > 0 &&
     nickname.trim().length >= 2;
 
@@ -70,26 +68,26 @@ export default function KakaoProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.blobTop} pointerEvents="none" />
+    <SafeAreaView style={authStyles.safe}>
+      <View style={authStyles.blobTop} pointerEvents="none" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}
+        style={authStyles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={authStyles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.brand}>
-            <Text style={styles.eyebrow}>삭삭</Text>
-            <Text style={styles.title}>추가 정보</Text>
-            <Text style={styles.subtitle}>
+          <View style={authStyles.brand}>
+            <Text style={authStyles.eyebrow}>삭삭</Text>
+            <Text style={authStyles.title}>추가 정보</Text>
+            <Text style={authStyles.subtitle}>
               카카오 가입을 완료하려면 닉네임과 이메일을 입력해 주세요. 입력한
               이메일로 인증 코드가 발송됩니다.
             </Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={authStyles.card}>
             <TextField
               autoCapitalize="none"
               autoCorrect={false}
@@ -109,7 +107,7 @@ export default function KakaoProfileScreen() {
               value={nickname}
             />
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={authStyles.error}>{error}</Text> : null}
 
             <Button
               loading={mutation.isPending}
@@ -126,7 +124,10 @@ export default function KakaoProfileScreen() {
             />
             <Button
               disabled={mutation.isPending}
-              onPress={() => router.replace('/(auth)/login')}
+              onPress={() => {
+                clearSignupToken();
+                router.replace('/(auth)/login');
+              }}
               title="돌아가기"
               variant="ghost"
             />
@@ -136,61 +137,3 @@ export default function KakaoProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  flex: {
-    flex: 1,
-  },
-  blobTop: {
-    position: 'absolute',
-    top: -80,
-    right: -60,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: colors.primarySoft,
-    opacity: 0.85,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 56,
-    paddingBottom: 32,
-    justifyContent: 'center',
-    gap: 28,
-  },
-  brand: {
-    gap: 8,
-  },
-  eyebrow: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 22,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 28,
-    padding: 20,
-    gap: 14,
-    ...clayShadowSoft,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 14,
-  },
-});

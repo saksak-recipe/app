@@ -15,40 +15,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { addIngredients } from '@/api/ingredients';
+import { queryKeys } from '@/api/queryKeys';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { useReceiptOcr } from '@/hooks/useReceiptOcr';
+import { todayISO } from '@/lib/dates';
+import { parseNameList } from '@/lib/receiptOcr';
+import { parseDataScope } from '@/lib/scope';
 import { colors } from '@/theme/colors';
 import { clayShadowSoft } from '@/theme/shadows';
-import type { DataScope } from '@/types/api';
 
 const SUGGESTIONS = ['양파', '당근', '계란', '우유', '두부', '김치', '밥', '닭가슴살'];
-
-function todayISO(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export default function AddIngredientScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const params = useLocalSearchParams<{ scope?: DataScope }>();
-  const scope = (params.scope ?? 'personal') as DataScope;
+  const params = useLocalSearchParams<{ scope?: string }>();
+  const scope = parseDataScope(params.scope);
 
   const [rawInput, setRawInput] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(todayISO());
   const [expirationDate, setExpirationDate] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const names = useMemo(() => {
-    return rawInput
-      .split(/[,\n]/)
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-  }, [rawInput]);
+  const names = useMemo(() => parseNameList(rawInput), [rawInput]);
 
   const rawInputRef = useRef(rawInput);
   rawInputRef.current = rawInput;
@@ -64,7 +54,9 @@ export default function AddIngredientScreen() {
     mutationFn: (payload: Parameters<typeof addIngredients>[0]) =>
       addIngredients(payload, scope),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['ingredients', scope] });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.ingredients.scope(scope),
+      });
       router.back();
     },
     onError: (err) => {

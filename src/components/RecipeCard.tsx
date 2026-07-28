@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
-import { clayShadowSoft } from '@/theme/shadows';
+import { recipeCardStyles } from '@/theme/recipeCardStyles';
 
 type RecipeCardRecipe = {
   recipe_name: string;
@@ -27,14 +27,14 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
       accessibilityLabel={`${recipe.recipe_name} 레시피 보기`}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [recipeCardStyles.card, pressed && recipeCardStyles.pressed]}
     >
-      <View style={styles.titleRow}>
-        <Text numberOfLines={1} style={styles.name}>
+      <View style={recipeCardStyles.titleRow}>
+        <Text numberOfLines={1} style={recipeCardStyles.name}>
           {recipe.recipe_name}
         </Text>
-        <View style={styles.difficulty}>
-          <Text style={styles.difficultyText}>{recipe.recipe_difficulty}</Text>
+        <View style={recipeCardStyles.difficulty}>
+          <Text style={recipeCardStyles.difficultyText}>{recipe.recipe_difficulty}</Text>
         </View>
       </View>
       <Text numberOfLines={2} style={styles.owned}>
@@ -43,44 +43,15 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
       <Text numberOfLines={2} style={styles.missing}>
         필요해요 · {formatIngredients(recipe.missing_ingredients)}
       </Text>
-      <View style={styles.timeRow}>
+      <View style={[recipeCardStyles.timeRow, styles.timeRow]}>
         <Ionicons color={colors.primary} name="time-outline" size={16} />
-        <Text style={styles.time}>{recipe.time}</Text>
+        <Text style={recipeCardStyles.time}>{recipe.time}</Text>
       </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 22,
-    padding: 16,
-    gap: 8,
-    ...clayShadowSoft,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  name: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  difficulty: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: colors.accentSoft,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.accent,
-  },
   owned: {
     fontSize: 13,
     color: colors.primaryDark,
@@ -91,18 +62,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
     marginTop: 2,
-  },
-  time: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
   },
 });
