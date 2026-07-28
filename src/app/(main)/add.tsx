@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import {
@@ -16,7 +16,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getErrorMessage } from '@/api/client';
 import { addIngredients } from '@/api/ingredients';
 import { queryKeys } from '@/api/queryKeys';
+import { getQuotas } from '@/api/quotas';
 import { Button } from '@/components/Button';
+import { QuotaBanner } from '@/components/QuotaBanner';
 import { TextField } from '@/components/TextField';
 import { useReceiptOcr } from '@/hooks/useReceiptOcr';
 import { todayISO } from '@/lib/dates';
@@ -42,6 +44,11 @@ export default function AddIngredientScreen() {
 
   const rawInputRef = useRef(rawInput);
   rawInputRef.current = rawInput;
+
+  const quotasQuery = useQuery({
+    queryKey: queryKeys.quotas,
+    queryFn: getQuotas,
+  });
 
   const receiptOcr = useReceiptOcr({
     getCurrentRaw: () => rawInputRef.current,
@@ -117,6 +124,8 @@ export default function AddIngredientScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.card}>
+            <QuotaBanner kind="ocr" quota={quotasQuery.data?.ocr} />
+
             <Text style={styles.hint}>
               여러 개는 쉼표 또는 줄바꿈으로 구분해 한 번에 추가할 수 있어요.
             </Text>

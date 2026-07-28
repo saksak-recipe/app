@@ -1,10 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 
 import { getErrorMessage } from '@/api/client';
 import { parseReceiptImage } from '@/api/ocr';
+import {
+  getApiErrorCode,
+  markQuotaExhausted,
+  patchQuotasKind,
+} from '@/lib/quota';
 import { mergeIngredientNames } from '@/lib/receiptOcr';
 
 type UseReceiptOcrOptions = {
@@ -26,6 +31,7 @@ export function useReceiptOcr({
   getCurrentRaw,
   onMerged,
 }: UseReceiptOcrOptions) {
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
 
@@ -37,6 +43,8 @@ export function useReceiptOcr({
         fileSize: asset.fileSize,
       }),
     onSuccess: (data) => {
+      patchQuotasKind(queryClient, 'ocr', data.quota);
+
       if (data.ingredients.length === 0) {
         setEmptyMessage(EMPTY_RESULT_MESSAGE);
         setError(null);
@@ -49,6 +57,9 @@ export function useReceiptOcr({
       setError(null);
     },
     onError: (err) => {
+      if (getApiErrorCode(err) === 'OCR_DAILY_LIMIT_EXCEEDED') {
+        markQuotaExhausted(queryClient, 'ocr');
+      }
       setEmptyMessage(null);
       setError(getErrorMessage(err, '영수증 인식에 실패했습니다.'));
     },
