@@ -1,9 +1,23 @@
 # SDD Progress Ledger
 
-Branch: feat/soft-ui-weight
-Plan: docs/superpowers/plans/2026-07-26-soft-ui-weight.md
-Started: 2026-07-26
-Worktree: /Users/jeong-yeonghun/Desktop/saksak/app/.worktrees/soft-ui-weight
+Branch: feat/quota-remaining-ui
+Plan: docs/superpowers/plans/2026-07-28-quota-remaining-ui.md
+Started: 2026-07-28
+App cwd: /Users/jeong-yeonghun/Desktop/saksak/app
+Back cwd: /Users/jeong-yeonghun/Desktop/saksak/back
+Note: feature branches in place (no separate worktree)
 
 
-Final: merged to main (fast-forward a50d1ee); worktree removed; feature branch deleted
+Task 1: complete (commits 683a18f..dd6f392, review clean)
+
+Task 2: complete (commits dd6f392..7b4f71c, review clean); minors: OpenAPI 401 docs, no RAG consume API test
+
+Task 3: complete (commits 688bc7b..8fa8eb1, review clean)
+
+Task 4: complete (commits 8fa8eb1..ad87c0d, review clean)
+
+Task 5: complete (commits ad87c0d..cffc49a)
+
+Task 5: complete (commits ad87c0d..cffc49a, review clean); minor: double inset in add card
+
+Final review: Ready to merge (no Critical/Important; minors deferred)
