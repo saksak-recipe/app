@@ -212,6 +212,21 @@ export type ApiErrorBody = {
   status_code: number;
   code: string;
   detail: string | Array<{ msg?: string; loc?: unknown[] }>;
+  limit?: number;
+  remaining?: number;
+  reset_at?: string;
+};
+
+export type QuotaInfo = {
+  limit: number;
+  used: number;
+  remaining: number;
+  reset_at: string;
+};
+
+export type QuotasResponse = {
+  ocr: QuotaInfo;
+  rag: QuotaInfo;
 };
 
 export type RecipeRecommendation = {
@@ -228,6 +243,7 @@ export type RecipeRecommendation = {
 export type RecipeRecommendationResponse = {
   ingredients_used: string[];
   recipes: RecipeRecommendation[];
+  quota?: QuotaInfo | null;
 };
 
 export type RecipeIngredient = {
@@ -301,4 +317,5 @@ export type SavedRecipeStatus = {
 
 export type OcrReceiptResponse = {
   ingredients: string[];
+  quota: QuotaInfo;
 };

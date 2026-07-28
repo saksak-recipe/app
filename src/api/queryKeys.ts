@@ -1,6 +1,7 @@
 import type { DataScope, SavedRecipeSource } from '@/types/api';
 
 export const queryKeys = {
+  quotas: ['quotas'] as const,
   users: {
     me: ['users', 'me'] as const,
   },
