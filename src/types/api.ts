@@ -34,7 +34,18 @@ export type KakaoNeedsProfileResponse = {
   signup_token: string;
 };
 
+export type KakaoNeedsEmailVerificationResponse = {
+  status: 'needs_email_verification';
+  email: string;
+  message: string;
+  expires_in_seconds: number;
+};
+
 export type KakaoLoginResponse = KakaoAuthResponse | KakaoNeedsProfileResponse;
+
+export type KakaoCompleteResponse =
+  | KakaoAuthResponse
+  | KakaoNeedsEmailVerificationResponse;
 
 export type KakaoCompleteRequest = {
   signup_token: string;

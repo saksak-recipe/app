@@ -29,10 +29,15 @@ function formatRemainingTime(seconds: number): string {
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ email?: string; expiresIn?: string }>();
+  const params = useLocalSearchParams<{
+    email?: string;
+    expiresIn?: string;
+    source?: string;
+  }>();
   const setSession = useAuthStore((state) => state.setSession);
 
   const initialExpiresIn = Number(params.expiresIn) || DEFAULT_EXPIRES_IN_SECONDS;
+  const isKakao = params.source === 'kakao';
 
   const [email, setEmail] = useState(params.email ?? '');
   const [code, setCode] = useState('');
@@ -89,7 +94,9 @@ export default function VerifyEmailScreen() {
             <Text style={styles.eyebrow}>삭삭</Text>
             <Text style={styles.title}>이메일 인증</Text>
             <Text style={styles.subtitle}>
-              가입하신 이메일로 발송된 6자리 인증 코드를 입력해주세요.
+              {isKakao
+                ? '카카오 가입을 위해 이메일로 발송된 6자리 인증 코드를 입력해주세요.'
+                : '가입하신 이메일로 발송된 6자리 인증 코드를 입력해주세요.'}
             </Text>
           </View>
 

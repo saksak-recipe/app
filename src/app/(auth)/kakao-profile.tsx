@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -40,6 +40,18 @@ export default function KakaoProfileScreen() {
   const mutation = useMutation({
     mutationFn: completeKakaoSignup,
     onSuccess: async (data) => {
+      if (data.status === 'needs_email_verification') {
+        router.replace({
+          pathname: '/(auth)/verify-email',
+          params: {
+            email: data.email,
+            expiresIn: String(data.expires_in_seconds),
+            source: 'kakao',
+          },
+        } as unknown as Href);
+        return;
+      }
+
       await setSession(data.access_token, data.refresh_token, data.info);
       router.replace('/(main)');
     },
@@ -72,7 +84,8 @@ export default function KakaoProfileScreen() {
             <Text style={styles.eyebrow}>삭삭</Text>
             <Text style={styles.title}>추가 정보</Text>
             <Text style={styles.subtitle}>
-              카카오 가입을 완료하려면 닉네임과 이메일을 입력해 주세요
+              카카오 가입을 완료하려면 닉네임과 이메일을 입력해 주세요. 입력한
+              이메일로 인증 코드가 발송됩니다.
             </Text>
           </View>
 
@@ -109,7 +122,7 @@ export default function KakaoProfileScreen() {
                   nickname: nickname.trim(),
                 });
               }}
-              title="가입 완료"
+              title="인증 메일 받기"
             />
             <Button
               disabled={mutation.isPending}

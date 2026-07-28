@@ -4,7 +4,7 @@ import type {
   EmailResendRequest,
   EmailVerifyRequest,
   KakaoCompleteRequest,
-  KakaoAuthResponse,
+  KakaoCompleteResponse,
   KakaoLoginResponse,
   LogInRequest,
   OkResponse,
@@ -67,8 +67,8 @@ export async function loginWithKakao(
 
 export async function completeKakaoSignup(
   payload: KakaoCompleteRequest,
-): Promise<KakaoAuthResponse> {
-  const { data } = await apiClient.post<KakaoAuthResponse>(
+): Promise<KakaoCompleteResponse> {
+  const { data } = await apiClient.post<KakaoCompleteResponse>(
     '/auth/kakao/complete',
     payload,
   );
