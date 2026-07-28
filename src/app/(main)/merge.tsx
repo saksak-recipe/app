@@ -62,6 +62,31 @@ function SelectableItem({
   );
 }
 
+function SectionHeader({
+  title,
+  itemCount,
+  allSelected,
+  onToggleAll,
+}: {
+  title: string;
+  itemCount: number;
+  allSelected: boolean;
+  onToggleAll: () => void;
+}) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {itemCount > 0 ? (
+        <Pressable onPress={onToggleAll} hitSlop={8}>
+          <Text style={styles.selectAllText}>
+            {allSelected ? '전체 해제' : '전체 선택'}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 export default function MergeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -121,6 +146,27 @@ export default function MergeScreen() {
 
   const ingredients = ingredientsQuery.data ?? [];
   const shopping = shoppingQuery.data ?? [];
+
+  const allIngredientsSelected =
+    ingredients.length > 0 &&
+    ingredients.every((item) => selectedIngredients.includes(item.id));
+
+  const allShoppingSelected =
+    shopping.length > 0 &&
+    shopping.every((item) => selectedShopping.includes(item.id));
+
+  const toggleAllIngredients = () => {
+    setSelectedIngredients(
+      allIngredientsSelected ? [] : ingredients.map((item) => item.id),
+    );
+  };
+
+  const toggleAllShopping = () => {
+    setSelectedShopping(
+      allShoppingSelected ? [] : shopping.map((item) => item.id),
+    );
+  };
+
   const canSubmit = selectedIngredients.length > 0 || selectedShopping.length > 0;
 
   if (ingredientsQuery.isLoading || shoppingQuery.isLoading) {
@@ -156,7 +202,12 @@ export default function MergeScreen() {
             />
           </View>
 
-          <Text style={styles.sectionTitle}>식재료</Text>
+          <SectionHeader
+            title="식재료"
+            itemCount={ingredients.length}
+            allSelected={allIngredientsSelected}
+            onToggleAll={toggleAllIngredients}
+          />
           {ingredients.length === 0 ? (
             <Text style={styles.empty}>내 냉장고에 식재료가 없어요.</Text>
           ) : (
@@ -170,7 +221,12 @@ export default function MergeScreen() {
             ))
           )}
 
-          <Text style={styles.sectionTitle}>장보기</Text>
+          <SectionHeader
+            title="장보기"
+            itemCount={shopping.length}
+            allSelected={allShoppingSelected}
+            onToggleAll={toggleAllShopping}
+          />
           {shopping.length === 0 ? (
             <Text style={styles.empty}>장보기 목록이 비어있어요.</Text>
           ) : (
@@ -209,11 +265,21 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    marginTop: 8,
+  },
+  selectAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
   toggleGroup: { flexDirection: 'row', gap: 8 },
   toggleRow: {
