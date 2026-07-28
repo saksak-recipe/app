@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRouter, type Href } from 'expo-router';
 import {
   ActivityIndicator,
@@ -14,17 +14,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getErrorMessage } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
+import { getQuotas } from '@/api/quotas';
 import { getRecipeRecommendations } from '@/api/recipes';
 import { Button } from '@/components/Button';
+import { QuotaBanner } from '@/components/QuotaBanner';
 import { RecipeCard } from '@/components/RecipeCard';
 import { ScopeToggle } from '@/components/ScopeToggle';
 import { useGroupScope } from '@/hooks/useGroupScope';
+import {
+  getApiErrorCode,
+  markQuotaExhausted,
+  patchQuotasKind,
+} from '@/lib/quota';
 import { colors } from '@/theme/colors';
 import type { RecipeRecommendation } from '@/types/api';
 
 export default function RecipeRecommendationsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const { scope, hasGroup, setScope } = useGroupScope();
 
   useLayoutEffect(() => {
@@ -45,7 +53,25 @@ export default function RecipeRecommendationsScreen() {
 
   const query = useQuery({
     queryKey: queryKeys.recipes.recommendations(scope),
-    queryFn: () => getRecipeRecommendations(scope),
+    queryFn: async () => {
+      try {
+        const data = await getRecipeRecommendations(scope);
+        if (data.quota) {
+          patchQuotasKind(queryClient, 'rag', data.quota);
+        }
+        return data;
+      } catch (error) {
+        if (getApiErrorCode(error) === 'RAG_DAILY_LIMIT_EXCEEDED') {
+          markQuotaExhausted(queryClient, 'rag');
+        }
+        throw error;
+      }
+    },
+  });
+
+  const quotasQuery = useQuery({
+    queryKey: queryKeys.quotas,
+    queryFn: getQuotas,
   });
 
   const recipes: RecipeRecommendation[] = query.data?.recipes ?? [];
@@ -57,6 +83,7 @@ export default function RecipeRecommendationsScreen() {
           <ScopeToggle scope={scope} onChange={setScope} />
         </View>
       ) : null}
+      <QuotaBanner kind="rag" quota={quotasQuery.data?.rag} />
       {query.isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
@@ -87,8 +114,10 @@ export default function RecipeRecommendationsScreen() {
           }
           refreshControl={
             <RefreshControl
-              refreshing={query.isRefetching}
-              onRefresh={() => void query.refetch()}
+              refreshing={query.isRefetching || quotasQuery.isRefetching}
+              onRefresh={() => {
+                void Promise.all([query.refetch(), quotasQuery.refetch()]);
+              }}
               tintColor={colors.primary}
             />
           }
