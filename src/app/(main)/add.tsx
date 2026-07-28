@@ -101,14 +101,15 @@ export default function AddIngredientScreen() {
       return;
     }
 
-    if (expirationDate && !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate)) {
+    const isSingle = names.length === 1;
+    if (isSingle && expirationDate && !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate)) {
       setError('유통기한은 YYYY-MM-DD 형식이어야 합니다.');
       return;
     }
 
     mutation.mutate({
       purchase_date: purchaseDate,
-      expiration_date: expirationDate || null,
+      expiration_date: isSingle ? expirationDate || null : null,
       ingredients: names,
     });
   };
@@ -167,12 +168,19 @@ export default function AddIngredientScreen() {
               value={purchaseDate}
             />
 
-            <TextField
-              label="유통기한 (선택)"
-              onChangeText={setExpirationDate}
-              placeholder="YYYY-MM-DD"
-              value={expirationDate}
-            />
+            {names.length <= 1 ? (
+              <TextField
+                label="유통기한 (선택)"
+                onChangeText={setExpirationDate}
+                placeholder="YYYY-MM-DD"
+                value={expirationDate}
+              />
+            ) : (
+              <Text style={styles.hint}>
+                여러 식재료를 한 번에 추가할 때는 유통기한을 직접 입력할 수 없어요.
+                재료별 기본 유통기한이 적용됩니다.
+              </Text>
+            )}
 
             {names.length > 0 ? (
               <View style={styles.previewPill}>
